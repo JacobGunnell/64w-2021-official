@@ -13,6 +13,7 @@ static lv_res_t gui_mbox_destroy(lv_obj_t *, const char *);
 static lv_obj_t *preloader;
 static lv_obj_t *mbox;
 static lv_obj_t *autonList;
+static lv_obj_t *descLabel;
 
 
 void gui_loading_start()
@@ -118,6 +119,12 @@ void gui_main()
 	style_bg.body.shadow.width = 4;
 	style_bg.text.color = LV_COLOR_MAKE(0x10, 0x20, 0x50);
 
+  descLabel = lv_label_create(autonSetup, NULL);
+  lv_obj_align(descLabel, title3, LV_ALIGN_CENTER, 100, 60);
+  lv_label_set_long_mode(descLabel, LV_LABEL_LONG_BREAK);
+  lv_obj_set_width(descLabel, 240);
+  lv_label_set_text(descLabel, AutonBase::getAllObjs()[autonNum]->getDescription().c_str());
+
 	autonList = lv_ddlist_create(autonSetup, NULL);
 	lv_obj_set_free_num(autonList, 2);
 	lv_obj_set_style(autonList, &style_bg);
@@ -135,6 +142,7 @@ void gui_main()
 static lv_res_t autonlist_action(lv_obj_t *list) // TODO: gray out impossible options with a specific Position
 {
   autonNum = lv_ddlist_get_selected(list);
+  lv_label_set_text(descLabel, AutonBase::getAllObjs()[autonNum]->getDescription().c_str());
 
   return LV_RES_OK;
 }

@@ -18,6 +18,7 @@ class AutonBase
 public:
   virtual std::string getName() const = 0;
   virtual int getPoints() const = 0;
+  virtual std::string getDescription() const { return ""; }
   virtual void exec(Position) = 0;
 
   std::string getListing() const { return getName() + ": " + std::to_string(getPoints()); } // get listing as shown in a dropdown list

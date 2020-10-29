@@ -16,7 +16,7 @@ extern Controller Cont;
 extern pros::Mutex DriveMtx;
 
 // Other objects
-extern std::shared_ptr<ChassisController> Chassis;
+extern std::shared_ptr<OdomChassisController> Chassis;
 extern std::shared_ptr<XDriveModel> Drive;
 
 #endif // HARDWARE_H

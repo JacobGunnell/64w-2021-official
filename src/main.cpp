@@ -13,10 +13,11 @@ Controller Cont(ControllerId::master);
 pros::Mutex DriveMtx;
 
 // Other Objects
-std::shared_ptr<ChassisController> Chassis = ChassisControllerBuilder()
-	.withMotors(1, -10, 11, -20)
-	.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR}) // TODO: update dimensions
-	.build();
+std::shared_ptr<OdomChassisController> Chassis = ChassisControllerBuilder()
+	.withMotors(11, -1, -10, 20)
+	.withDimensions(AbstractMotor::gearset::green, {{4_in, 13_in}, imev5GreenTPR}) // TODO: update dimensions
+	.withOdometry() // TODO: 3 encoder odometry?
+	.buildOdometry(); // TODO: add PID gains?
 std::shared_ptr<XDriveModel> Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
 
 extern int autonNum;
@@ -76,9 +77,9 @@ void driveCtlCb()
 		if(DriveMtx.take(20))
 		{
 			Drive->xArcade( // TODO: add dr/expo curves
-	      Cont.getAnalog(ControllerAnalog::rightX),
-	      Cont.getAnalog(ControllerAnalog::rightY),
-	      Cont.getAnalog(ControllerAnalog::leftX));
+	      Cont.getAnalog(ControllerAnalog::leftX),
+	      Cont.getAnalog(ControllerAnalog::leftY) + Cont.getAnalog(ControllerAnalog::rightY),
+	      Cont.getAnalog(ControllerAnalog::rightX));
 			DriveMtx.give();
 		}
     pros::delay(20);
