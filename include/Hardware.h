@@ -7,13 +7,15 @@ using namespace okapi;
 #include "pros/apix.h"
 
 // Motor objects
-
+extern Motor IntakeU;
+extern Motor IntakeL;
 
 // Sensor objects
 extern Controller Cont;
+extern IMU Imu;
 
 // Mutexes
-extern pros::Mutex DriveMtx;
+extern CrossplatformMutex DriveMtx, IntakeMtx;
 
 // Other objects
 extern std::shared_ptr<OdomChassisController> Chassis;
