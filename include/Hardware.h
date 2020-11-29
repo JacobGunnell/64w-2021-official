@@ -7,8 +7,9 @@ using namespace okapi;
 #include "pros/apix.h"
 
 // Motor objects
-extern Motor IntakeU;
-extern Motor IntakeL;
+extern Motor MainRollers;
+extern Motor IndexingRoller;
+extern MotorGroup Intakes;
 
 // Sensor objects
 extern Controller Cont;

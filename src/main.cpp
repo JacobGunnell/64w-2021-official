@@ -4,8 +4,10 @@
 
 // Globals
 // Motor objects
-Motor IntakeU(3, false, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
-Motor IntakeL(2, true, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
+Motor MainRollers(2, true, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
+Motor IndexingRoller(3, false, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
+MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees),
+										Motor(9, true, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees)});
 
 // Sensor objects
 Controller Cont(ControllerId::master);
@@ -29,7 +31,7 @@ extern double translationalExpo, rotationalDR, rotationalExpo;
 // Misc
 template <typename T> int sgn(T val)
 {
-    return (T(0) < val) - (val < T(0));
+  return (T(0) < val) - (val < T(0));
 }
 
 
@@ -97,29 +99,68 @@ void driveCtlCb()
 
 void intakeCtlCb()
 {
+	int intakeSpeed = 12000,
+			outtakeSpeed = 6000,
+			rollerSpeed = 12000;
+
 	while(true)
 	{
 		IntakeMtx.lock();
 
-		if(Cont.getDigital(ControllerDigital::R1))
+
+		if(Cont.getDigital(ControllerDigital::R1)) // Cycle
 		{
-			IntakeU.moveVoltage(12000);
-			IntakeL.moveVoltage(12000);
+			MainRollers.moveVoltage(rollerSpeed);
+			IndexingRoller.moveVoltage(rollerSpeed);
+			Intakes.moveVoltage(intakeSpeed);
 		}
-		else if(Cont.getDigital(ControllerDigital::R2))
+		else if(Cont.getDigital(ControllerDigital::R2)) // Descore
 		{
-			IntakeU.moveVoltage(-12000);
-			IntakeL.moveVoltage(12000);
+			MainRollers.moveVoltage(rollerSpeed);
+			IndexingRoller.moveVoltage(-rollerSpeed);
+			Intakes.moveVoltage(intakeSpeed);
 		}
-		else if(Cont.getDigital(ControllerDigital::L2))
+		else if(Cont.getDigital(ControllerDigital::L2)) // Flush
 		{
-			IntakeU.moveVoltage(-12000);
-			IntakeL.moveVoltage(-12000);
+			MainRollers.moveVoltage(-rollerSpeed);
+			IndexingRoller.moveVoltage(-rollerSpeed);
+			Intakes.moveVoltage(-outtakeSpeed);
+		}
+		else if(Cont.getDigital(ControllerDigital::up)) // Score
+		{
+			MainRollers.moveVoltage(rollerSpeed);
+			IndexingRoller.moveVoltage(rollerSpeed);
+			Intakes.moveVoltage(0);
+		}
+		else if(Cont.getDigital(ControllerDigital::down)) // Eject
+		{
+			MainRollers.moveVoltage(rollerSpeed);
+			IndexingRoller.moveVoltage(-rollerSpeed);
+			Intakes.moveVoltage(0);
+		}
+		else if(Cont.getDigital(ControllerDigital::L1)) // Grab
+		{
+			MainRollers.moveVoltage(rollerSpeed);
+			IndexingRoller.moveVoltage(0);
+			Intakes.moveVoltage(intakeSpeed);
+		}
+		else if(Cont.getDigital(ControllerDigital::right)) // Intake
+		{
+			MainRollers.moveVoltage(0);
+			IndexingRoller.moveVoltage(0);
+			Intakes.moveVoltage(intakeSpeed);
+		}
+		else if(Cont.getDigital(ControllerDigital::left)) // Outtake
+		{
+			MainRollers.moveVoltage(0);
+			IndexingRoller.moveVoltage(0);
+			Intakes.moveVoltage(-outtakeSpeed);
 		}
 		else
 		{
-			IntakeU.moveVoltage(0);
-			IntakeL.moveVoltage(0);
+			MainRollers.moveVoltage(0);
+			IndexingRoller.moveVoltage(0);
+			Intakes.moveVoltage(0);
 		}
 
 		IntakeMtx.unlock();
