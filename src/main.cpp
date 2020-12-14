@@ -4,8 +4,8 @@
 
 // Globals
 // Motor objects
-Motor MainRollers(2, true, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
-Motor IndexingRoller(3, false, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
+Motor BottomRollers(2, true, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
+Motor TopRollers(3, false, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees);
 MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees),
 										Motor(9, true, AbstractMotor::gearset::blue, AbstractMotor::encoderUnits::degrees)});
 
@@ -36,8 +36,8 @@ template <typename T> int sgn(T val)
 
 
 // Function Prototypes
-void driveCtlCb();
-void intakeCtlCb();
+void driveCtlCb(void *);
+void intakeCtlCb(void *);
 float drexpo(float, double, double);
 
 // Function Implementations
@@ -78,13 +78,15 @@ void autonomous()
 void opcontrol()
 {
 	std::cout << "Entering operator control mode" << std::endl;
-	pros::Task DriveCtl(driveCtlCb);
-	pros::Task IntakeCtl(intakeCtlCb);
+	pros::Task DriveCtl(&driveCtlCb, NULL);
+	pros::Task IntakeCtl(&intakeCtlCb, NULL);
 }
 
 // Tasks
-void driveCtlCb()
+void driveCtlCb(void *params)
 {
+	Rate r;
+
 	while(true)
 	{
 		DriveMtx.lock();
@@ -93,12 +95,15 @@ void driveCtlCb()
       drexpo(Cont.getAnalog(ControllerAnalog::leftY) + Cont.getAnalog(ControllerAnalog::rightY), 1.0, translationalExpo),
       drexpo(Cont.getAnalog(ControllerAnalog::rightX), rotationalDR, rotationalExpo));
 		DriveMtx.unlock();
-    pros::delay(20);
+
+    r.delay(50_Hz);
 	}
 }
 
-void intakeCtlCb()
+void intakeCtlCb(void *params)
 {
+	Rate r;
+
 	int intakeSpeed = 12000,
 			outtakeSpeed = 6000,
 			rollerSpeed = 12000;
@@ -106,70 +111,68 @@ void intakeCtlCb()
 	while(true)
 	{
 		IntakeMtx.lock();
-
-
 		if(Cont.getDigital(ControllerDigital::R1)) // Cycle
 		{
-			MainRollers.moveVoltage(rollerSpeed);
-			IndexingRoller.moveVoltage(rollerSpeed);
+			BottomRollers.moveVoltage(rollerSpeed);
+			TopRollers.moveVoltage(rollerSpeed);
 			Intakes.moveVoltage(intakeSpeed);
 		}
 		else if(Cont.getDigital(ControllerDigital::R2)) // Descore
 		{
-			MainRollers.moveVoltage(rollerSpeed);
-			IndexingRoller.moveVoltage(-rollerSpeed);
+			BottomRollers.moveVoltage(rollerSpeed);
+			TopRollers.moveVoltage(-rollerSpeed);
 			Intakes.moveVoltage(intakeSpeed);
 		}
 		else if(Cont.getDigital(ControllerDigital::L2)) // Flush
 		{
-			MainRollers.moveVoltage(-rollerSpeed);
-			IndexingRoller.moveVoltage(-rollerSpeed);
+			BottomRollers.moveVoltage(-rollerSpeed);
+			TopRollers.moveVoltage(-rollerSpeed);
 			Intakes.moveVoltage(-outtakeSpeed);
 		}
 		else if(Cont.getDigital(ControllerDigital::up)) // Score
 		{
-			MainRollers.moveVoltage(rollerSpeed);
-			IndexingRoller.moveVoltage(rollerSpeed);
+			BottomRollers.moveVoltage(rollerSpeed);
+			TopRollers.moveVoltage(rollerSpeed);
 			Intakes.moveVoltage(0);
 		}
 		else if(Cont.getDigital(ControllerDigital::down)) // Eject
 		{
-			MainRollers.moveVoltage(rollerSpeed);
-			IndexingRoller.moveVoltage(-rollerSpeed);
+			BottomRollers.moveVoltage(rollerSpeed);
+			TopRollers.moveVoltage(-rollerSpeed);
 			Intakes.moveVoltage(0);
 		}
 		else if(Cont.getDigital(ControllerDigital::L1)) // Grab
 		{
-			MainRollers.moveVoltage(rollerSpeed);
-			IndexingRoller.moveVoltage(0);
+			BottomRollers.moveVoltage(rollerSpeed);
+			TopRollers.moveVoltage(0);
 			Intakes.moveVoltage(intakeSpeed);
 		}
-		else if(Cont.getDigital(ControllerDigital::right)) // Intake
+		else if(Cont.getDigital(ControllerDigital::right)) // Top Only Forward
 		{
-			MainRollers.moveVoltage(0);
-			IndexingRoller.moveVoltage(0);
-			Intakes.moveVoltage(intakeSpeed);
+			BottomRollers.moveVoltage(0);
+			TopRollers.moveVoltage(rollerSpeed);
+			Intakes.moveVoltage(0);
 		}
-		else if(Cont.getDigital(ControllerDigital::left)) // Outtake
+		else if(Cont.getDigital(ControllerDigital::left)) // Top Only Reverse
 		{
-			MainRollers.moveVoltage(0);
-			IndexingRoller.moveVoltage(0);
-			Intakes.moveVoltage(-outtakeSpeed);
+			BottomRollers.moveVoltage(0);
+			TopRollers.moveVoltage(-rollerSpeed);
+			Intakes.moveVoltage(0);
 		}
 		else
 		{
-			MainRollers.moveVoltage(0);
-			IndexingRoller.moveVoltage(0);
+			BottomRollers.moveVoltage(0);
+			TopRollers.moveVoltage(0);
 			Intakes.moveVoltage(0);
 		}
-
 		IntakeMtx.unlock();
-		pros::delay(20);
+
+		r.delay(50_Hz);
 	}
 }
 
 // Other
 float drexpo(float input, double rgain, double egain) // just a quick expo equation for the joystick controls
 {
-    return sgn(input)*rgain*pow(abs(input), 1+egain); // see Desmos for a pretty graph of this
+  return sgn(input)*rgain*pow(abs(input), 1+egain); // see Desmos for a pretty graph of this
 }
