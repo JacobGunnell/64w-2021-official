@@ -12,7 +12,9 @@ MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor:
 // Sensor objects
 Controller Cont(ControllerId::master);
 IMU Imu(4, IMUAxes::x);
-pros::Vision Camera(19);
+pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
+pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
+//Vision<25> Camera(19, 150, RED_BALL, BLUE_BALL);
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -40,6 +42,7 @@ template <typename T> int sgn(T val)
 void driveCtlCb(void *);
 void intakeCtlCb(void *);
 void tempCheckCb(void *);
+void visionTrackingCb(void *);
 float drexpo(float, double, double);
 
 // Function Implementations
@@ -83,6 +86,7 @@ void opcontrol()
 	pros::Task DriveCtl(&driveCtlCb, NULL);
 	pros::Task IntakeCtl(&intakeCtlCb, NULL);
 	pros::Task TempCheck(&tempCheckCb, NULL);
+	//pros::Task VisionTracking(&visionTrackingCb, NULL);
 }
 
 // Tasks
@@ -179,7 +183,7 @@ void tempCheckCb(void *params)
 
 	while(true)
 	{
-		if(TopRollers.isOverTemp() || Cont.getDigital(ControllerDigital::A))
+		if(TopRollers.isOverTemp())
 		{
 			Cont.rumble("-");
 			pros::delay(200);
@@ -189,6 +193,38 @@ void tempCheckCb(void *params)
 			Cont.clearLine(2);
 
 		r.delay(.1_Hz);
+	}
+}
+
+void visionTrackingCb(void *params)
+{
+	Rate r;
+
+	while(true)
+	{
+		Camera.update();
+
+		if(Cont.getDigital(ControllerDigital::A))
+		{
+			std::cout << "Digital A pressed" << std::endl;
+			double p = 3.0;
+
+			DriveMtx.lock();
+			IntakeMtx.lock();
+
+			Intakes.moveVoltage(12000);
+			while(Camera.size() >= 1)
+			{
+				Drive->arcade(90, -p*Camera[0].x.getOutput());
+			}
+			Drive->stop();
+			Intakes.moveVoltage(0);
+
+			DriveMtx.unlock();
+			IntakeMtx.unlock();
+		}
+
+		r.delay(50_Hz);
 	}
 }
 

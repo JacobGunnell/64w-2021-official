@@ -5,6 +5,7 @@
 #include "okapi/api.hpp"
 using namespace okapi;
 #include "pros/apix.h"
+#include "Vision.h"
 
 // Motor objects
 extern Motor MainRollers;
@@ -14,7 +15,7 @@ extern MotorGroup Intakes;
 // Sensor objects
 extern Controller Cont;
 extern IMU Imu;
-extern pros::Vision Camera;
+extern Vision<25> Camera;
 
 // Mutexes
 extern CrossplatformMutex DriveMtx, IntakeMtx;
