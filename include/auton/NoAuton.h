@@ -1,4 +1,4 @@
-#ifndef NOAUTON_H
+#ifndef NOAUTON_H // don't forget to change guard block name!!
 #define NOAUTON_H
 
 
@@ -9,6 +9,7 @@ class NoAuton : public AutonBase // use this as a template for new autonomous ro
 public:
   std::string getName() const override { return "No Auton"; } // name of routine here
   int getPoints() const override { return 0; } // points here
+  std::string getDescription() const override { return ""; } // description here
   void exec(Position p) override
   {
     // autonomous code goes here
