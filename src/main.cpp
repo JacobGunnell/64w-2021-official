@@ -12,6 +12,7 @@ MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor:
 // Sensor objects
 Controller Cont(ControllerId::master);
 IMU Imu(4, IMUAxes::x);
+pros::Vision Camera(19);
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -38,6 +39,7 @@ template <typename T> int sgn(T val)
 // Function Prototypes
 void driveCtlCb(void *);
 void intakeCtlCb(void *);
+void tempCheckCb(void *);
 float drexpo(float, double, double);
 
 // Function Implementations
@@ -80,6 +82,7 @@ void opcontrol()
 	std::cout << "Entering operator control mode" << std::endl;
 	pros::Task DriveCtl(&driveCtlCb, NULL);
 	pros::Task IntakeCtl(&intakeCtlCb, NULL);
+	pros::Task TempCheck(&tempCheckCb, NULL);
 }
 
 // Tasks
@@ -120,13 +123,12 @@ void intakeCtlCb(void *params)
 		else if(Cont.getDigital(ControllerDigital::R2)) // Descore
 		{
 			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(-rollerSpeed);
+			TopRollers.moveVoltage(-rollerSpeed/2);
 			Intakes.moveVoltage(intakeSpeed);
 		}
 		else if(Cont.getDigital(ControllerDigital::L2)) // Flush
 		{
 			BottomRollers.moveVoltage(-rollerSpeed);
-			TopRollers.moveVoltage(-rollerSpeed);
 			Intakes.moveVoltage(-outtakeSpeed);
 		}
 		else if(Cont.getDigital(ControllerDigital::up)) // Score
@@ -138,7 +140,7 @@ void intakeCtlCb(void *params)
 		else if(Cont.getDigital(ControllerDigital::down)) // Eject
 		{
 			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(-rollerSpeed);
+			TopRollers.moveVoltage(-rollerSpeed/2);
 			Intakes.moveVoltage(0);
 		}
 		else if(Cont.getDigital(ControllerDigital::L1)) // Grab
@@ -168,6 +170,25 @@ void intakeCtlCb(void *params)
 		IntakeMtx.unlock();
 
 		r.delay(50_Hz);
+	}
+}
+
+void tempCheckCb(void *params)
+{
+	Rate r;
+
+	while(true)
+	{
+		if(TopRollers.isOverTemp() || Cont.getDigital(ControllerDigital::A))
+		{
+			Cont.rumble("-");
+			pros::delay(200);
+			Cont.setText(2, 0, "Over Temp!");
+		}
+		else
+			Cont.clearLine(2);
+
+		r.delay(.1_Hz);
 	}
 }
 

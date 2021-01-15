@@ -14,6 +14,7 @@ extern MotorGroup Intakes;
 // Sensor objects
 extern Controller Cont;
 extern IMU Imu;
+extern pros::Vision Camera;
 
 // Mutexes
 extern CrossplatformMutex DriveMtx, IntakeMtx;
