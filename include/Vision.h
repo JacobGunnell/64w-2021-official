@@ -6,6 +6,8 @@
 using namespace okapi;
 #include "pros/apix.h"
 #include <vector>
+#include <iostream>
+#include <utility>
 
 enum Color {RED=1, BLUE=2};
 
@@ -34,9 +36,7 @@ private:
 };
 
 template class Vision<10u>;
-template class Vision<25u>;
-template class Vision<50u>;
-template class Vision<75u>;
-template class Vision<100u>;
+template class Vision<20u>;
+template class Vision<30u>;
 
 #endif // VISION_H

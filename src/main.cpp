@@ -14,7 +14,7 @@ Controller Cont(ControllerId::master);
 IMU Imu(4, IMUAxes::x);
 pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
-//Vision<25> Camera(19, 150, RED_BALL, BLUE_BALL);
+Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL);
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -86,7 +86,7 @@ void opcontrol()
 	pros::Task DriveCtl(&driveCtlCb, NULL);
 	pros::Task IntakeCtl(&intakeCtlCb, NULL);
 	pros::Task TempCheck(&tempCheckCb, NULL);
-	//pros::Task VisionTracking(&visionTrackingCb, NULL);
+	pros::Task VisionTracking(&visionTrackingCb, NULL);
 }
 
 // Tasks
@@ -224,7 +224,7 @@ void visionTrackingCb(void *params)
 			IntakeMtx.unlock();
 		}
 
-		r.delay(50_Hz);
+		r.delay(10_Hz);
 	}
 }
 
