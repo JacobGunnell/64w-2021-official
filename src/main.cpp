@@ -206,16 +206,22 @@ void visionTrackingCb(void *params)
 
 		if(Cont.getDigital(ControllerDigital::A))
 		{
-			std::cout << "Digital A pressed" << std::endl;
-			double p = 3.0;
+			float p = .05, m = .3;
+			float baseSpeed = .8;
 
 			DriveMtx.lock();
 			IntakeMtx.lock();
 
 			Intakes.moveVoltage(12000);
-			while(Camera.size() >= 1)
+			while(Cont.getDigital(ControllerDigital::A))
 			{
-				Drive->arcade(90, -p*Camera[0].x.getOutput());
+				if(Camera.size() > 0)
+				{
+					auto target = Camera[0];
+					Drive->driveVector(baseSpeed + fmin(m*target->y.getOutput(), 0), p*target->x.getOutput());
+				}
+				else
+					Drive->driveVector(baseSpeed, 0);
 			}
 			Drive->stop();
 			Intakes.moveVoltage(0);
