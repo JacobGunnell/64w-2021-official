@@ -21,26 +21,21 @@ template<std::size_t n> void Vision<n>::update()
 
 
   // remove any existing balls not present in current snapshot
-  for(typename std::vector<std::shared_ptr<Ball<n>>>::iterator it = balls.begin(); it != balls.end(); )
+  for(typename std::vector<Ball<n>>::iterator it = balls.begin(); it != balls.end(); )
   {
-    if(*it)
+    bool match = false;
+    for(int i = 0; i < count; i++)
     {
-      bool match = false;
-      for(int i = 0; i < count; i++)
+      if(arr[i].signature == it->color && pow(it->x.getOutput() - arr[i].x_middle_coord, 2) + pow(it->y.getOutput() - arr[i].y_middle_coord, 2) <= maxFrameToleranceSq && arr[i].width*arr[i].height >= minBallArea) // if it's the same color and it didn't move too far since last frame
       {
-        if(arr[i].signature == (*it)->color && pow((*it)->x.getOutput() - arr[i].x_middle_coord, 2) + pow((*it)->y.getOutput() - arr[i].y_middle_coord, 2) <= maxFrameToleranceSq && arr[i].width*arr[i].height >= minBallArea) // if it's the same color and it didn't move too far since last frame
-        {
-          match = true;
-          break;
-        }
+        match = true;
+        break;
       }
-      if(!match)
-        it = balls.erase(it);
-      else
-        ++it;
     }
-    else
+    if(!match)
       it = balls.erase(it);
+    else
+      ++it;
   }
 
   // add any new balls, update existing
@@ -49,21 +44,18 @@ template<std::size_t n> void Vision<n>::update()
     if(arr[i].width*arr[i].height >= minBallArea)
     {
       bool match = false;
-      for(typename std::vector<std::shared_ptr<Ball<n>>>::iterator it = balls.begin(); it != balls.end(); ++it)
+      for(typename std::vector<Ball<n>>::iterator it = balls.begin(); it != balls.end(); ++it)
       {
-        if(*it)
+        if(arr[i].signature == it->color && pow(it->x.getOutput() - arr[i].x_middle_coord, 2) + pow(it->y.getOutput() - arr[i].y_middle_coord, 2) <= maxFrameToleranceSq) // if it's the same color and it didn't move too far since last frame
         {
-          if(arr[i].signature == (*it)->color && pow((*it)->x.getOutput() - arr[i].x_middle_coord, 2) + pow((*it)->y.getOutput() - arr[i].y_middle_coord, 2) <= maxFrameToleranceSq) // if it's the same color and it didn't move too far since last frame
-          {
-            (*it)->x.filter(arr[i].x_middle_coord);
-            (*it)->y.filter(arr[i].y_middle_coord);
-            match = true;
-            break;
-          }
+          it->x.filter(arr[i].x_middle_coord);
+          it->y.filter(arr[i].y_middle_coord);
+          match = true;
+          break;
         }
       }
       if(!match) // if no match was found, create a new object in balls
-        balls.push_back(std::shared_ptr<Ball<n>>(new Ball<n>(arr[i].x_middle_coord, arr[i].y_middle_coord, arr[i].signature)));
+        balls.push_back(Ball<n>(arr[i].x_middle_coord, arr[i].y_middle_coord, arr[i].signature));
     }
   }
 }
@@ -71,19 +63,12 @@ template<std::size_t n> void Vision<n>::update()
 template<std::size_t n> void Vision<n>::print()
 {
   std::cout << "balls array size " << balls.size() << " with contents:" << std::endl;
-  for(typename std::vector<std::shared_ptr<Ball<n>>>::iterator it = balls.begin(); it != balls.end(); ++it)
+  for(typename std::vector<Ball<n>>::iterator it = balls.begin(); it != balls.end(); ++it)
   {
-    if(*it)
-    {
-      if((*it)->color == RED)
-        std::cout << "red ";
-      else if((*it)->color == BLUE)
-        std::cout << "blue ";
-      std::cout << "ball at " << (*it)->x.getOutput() << "," << (*it)->y.getOutput() << std::endl;
-    }
-    else
-    {
-      std::cout << "bad pointer" << std::endl;
-    }
+    if(it->color == RED)
+      std::cout << "red ";
+    else if(it->color == BLUE)
+      std::cout << "blue ";
+    std::cout << "ball at " << it->x.getOutput() << "," << it->y.getOutput() << std::endl;
   }
 }

@@ -206,7 +206,7 @@ void visionTrackingCb(void *params)
 
 		if(Cont.getDigital(ControllerDigital::A))
 		{
-			float p = .05, m = .3;
+			float turnGain = .05, speedRolloff = -.005;
 			float baseSpeed = .8;
 
 			DriveMtx.lock();
@@ -215,10 +215,11 @@ void visionTrackingCb(void *params)
 			Intakes.moveVoltage(12000);
 			while(Cont.getDigital(ControllerDigital::A))
 			{
+				Camera.update();
 				if(Camera.size() > 0)
 				{
 					auto target = Camera[0];
-					Drive->driveVector(baseSpeed + fmin(m*target->y.getOutput(), 0), p*target->x.getOutput());
+					Drive->driveVector(baseSpeed - speedRolloff*target.y.getOutput(), turnGain*target.x.getOutput());
 				}
 				else
 					Drive->driveVector(baseSpeed, 0);

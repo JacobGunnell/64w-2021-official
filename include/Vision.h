@@ -23,8 +23,8 @@ template<std::size_t n> class Vision : protected pros::Vision
 {
 public:
   Vision(int, int, pros::vision_signature_s_t, pros::vision_signature_s_t);
-  const std::shared_ptr<Ball<n>> &operator[](int idx) const { return balls.at(idx); }
-  const std::shared_ptr<Ball<n>> &at(int idx) const { return balls.at(idx); }
+  const Ball<n> &operator[](int idx) const { return balls.at(idx); }
+  const Ball<n> &at(int idx) const { return balls.at(idx); }
   int size() const { return balls.size(); }
 
   void update();
@@ -32,7 +32,7 @@ public:
 private:
   void print();
 
-  std::vector<std::shared_ptr<Ball<n>>> balls;
+  std::vector<Ball<n>> balls;
   int minBallArea; // minimum area for a thing to be considered a Ball
   int maxFrameToleranceSq; // square of the maximum distance a thing can more between frames for it to be considered the same thing
 };
