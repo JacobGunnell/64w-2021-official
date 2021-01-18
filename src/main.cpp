@@ -14,7 +14,7 @@ Controller Cont(ControllerId::master);
 IMU Imu(4, IMUAxes::x);
 pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
-Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL);
+Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL, 30, .26);
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -206,13 +206,14 @@ void visionTrackingCb(void *params)
 
 		if(Cont.getDigital(ControllerDigital::A))
 		{
-			float turnGain = .05, speedRolloff = -.005;
+			float turnGain = .05, speedRolloff = .005;
 			float baseSpeed = .8;
 
 			DriveMtx.lock();
 			IntakeMtx.lock();
 
 			Intakes.moveVoltage(12000);
+			BottomRollers.moveVoltage(12000);
 			while(Cont.getDigital(ControllerDigital::A))
 			{
 				Camera.update();
@@ -225,7 +226,6 @@ void visionTrackingCb(void *params)
 					Drive->driveVector(baseSpeed, 0);
 			}
 			Drive->stop();
-			Intakes.moveVoltage(0);
 
 			DriveMtx.unlock();
 			IntakeMtx.unlock();
