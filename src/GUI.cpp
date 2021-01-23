@@ -2,7 +2,7 @@
 
 int autonNum = 0;
 Position position = {Position::RED, Position::LEFT};
-double translationalExpo, rotationalDR, rotationalExpo;
+Settings settings;
 
 static lv_res_t side_switch_action(lv_obj_t *);
 static lv_res_t pos_switch_action(lv_obj_t *);
@@ -24,6 +24,8 @@ static lv_obj_t *rotational_dr_slider;
 static lv_obj_t *rotational_dr_label;
 static lv_obj_t *rotational_expo_slider;
 static lv_obj_t *rotational_expo_label;
+static lv_obj_t *reset_label;
+static lv_obj_t *reset_button;
 
 
 void gui_loading_start()
@@ -151,9 +153,9 @@ void gui_main()
   lv_obj_set_width(translational_expo_slider, 200);
   lv_obj_align(translational_expo_slider, translational_expo_label, LV_ALIGN_OUT_BOTTOM_MID, 80, 0);
   lv_slider_set_range(translational_expo_slider, 0, 80);
-  lv_slider_set_value(translational_expo_slider, 20);
+  lv_slider_set_value(translational_expo_slider, settings.translationalExpo*100);
   lv_slider_set_action(translational_expo_slider, translational_expo_slider_action);
-  translational_expo_slider_action(translational_expo_slider);
+  lv_label_set_text(translational_expo_label, (std::string("Translational Expo.: ") + std::to_string(static_cast<int>(settings.translationalExpo*100)) + "%").c_str());
 
   rotational_dr_label = lv_label_create(tuning, NULL);
   lv_obj_align(rotational_dr_label, translational_expo_slider, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
@@ -161,9 +163,9 @@ void gui_main()
   lv_obj_set_width(rotational_dr_slider, 200);
   lv_obj_align(rotational_dr_slider, rotational_dr_label, LV_ALIGN_OUT_BOTTOM_MID, 80, 0);
   lv_slider_set_range(rotational_dr_slider, 50, 100);
-  lv_slider_set_value(rotational_dr_slider, 100);
+  lv_slider_set_value(rotational_dr_slider, settings.rotationalDR*100);
   lv_slider_set_action(rotational_dr_slider, rotational_dr_slider_action);
-  rotational_dr_slider_action(rotational_dr_slider);
+  lv_label_set_text(rotational_dr_label, (std::string("Rotational D/R: ") + std::to_string(static_cast<int>(settings.rotationalDR*100)) + "%").c_str());
 
   rotational_expo_label = lv_label_create(tuning, NULL);
   lv_obj_align(rotational_expo_label, translational_expo_label, LV_ALIGN_OUT_RIGHT_TOP, 40, 0);
@@ -171,9 +173,19 @@ void gui_main()
   lv_obj_set_width(rotational_expo_slider, 200);
   lv_obj_align(rotational_expo_slider, rotational_expo_label, LV_ALIGN_OUT_BOTTOM_MID, 80, 0);
   lv_slider_set_range(rotational_expo_slider, 0, 80);
-  lv_slider_set_value(rotational_expo_slider, 15);
+  lv_slider_set_value(rotational_expo_slider, settings.rotationalExpo*100);
   lv_slider_set_action(rotational_expo_slider, rotational_expo_slider_action);
-  rotational_expo_slider_action(rotational_expo_slider);
+  lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
+
+  /*reset_label = lv_label_create(tuning, NULL);
+  lv_obj_align(reset_label, rotational_dr_label, LV_ALIGN_OUT_RIGHT_TOP, 40, 0);
+  reset_button = lv_btn_create(tuning, NULL);
+  lv_obj_align(reset_button, reset_label, LV_ALIGN_OUT_BOTTOM_MID, 80, 0);*/
+
+
+  lv_obj_t *settings = lv_tabview_add_tab(tabview, "Settings");
+
+  // TODO
 }
 
 
@@ -223,22 +235,25 @@ static lv_res_t side_switch_action(lv_obj_t *sw)
 
 static lv_res_t translational_expo_slider_action(lv_obj_t *o)
 {
-  translationalExpo = lv_slider_get_value(o)/100.0;
-  lv_label_set_text(translational_expo_label, (std::string("Translational Expo.: ") + std::to_string(static_cast<int>(translationalExpo*100)) + "%").c_str());
+  settings.translationalExpo = lv_slider_get_value(o)/100.0;
+  lv_label_set_text(translational_expo_label, (std::string("Translational Expo.: ") + std::to_string(static_cast<int>(settings.translationalExpo*100)) + "%").c_str());
+  settings.save();
   return LV_RES_OK;
 }
 
 static lv_res_t rotational_dr_slider_action(lv_obj_t *o)
 {
-  rotationalDR = lv_slider_get_value(o)/100.0;
-  lv_label_set_text(rotational_dr_label, (std::string("Rotational D/R: ") + std::to_string(static_cast<int>(rotationalDR*100)) + "%").c_str());
+  settings.rotationalDR = lv_slider_get_value(o)/100.0;
+  lv_label_set_text(rotational_dr_label, (std::string("Rotational D/R: ") + std::to_string(static_cast<int>(settings.rotationalDR*100)) + "%").c_str());
+  settings.save();
   return LV_RES_OK;
 }
 
 static lv_res_t rotational_expo_slider_action(lv_obj_t *o)
 {
-  rotationalExpo = lv_slider_get_value(o)/100.0;
-  lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(rotationalExpo*100)) + "%").c_str());
+  settings.rotationalExpo = lv_slider_get_value(o)/100.0;
+  lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
+  settings.save();
   return LV_RES_OK;
 }
 

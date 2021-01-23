@@ -5,6 +5,7 @@
 #include "pros/apix.h"
 #include <string>
 #include "Auton.h"
+#include "Settings.h"
 
 void gui_loading_start();
 void gui_loading_stop();

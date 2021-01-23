@@ -7,7 +7,6 @@ using namespace okapi;
 #include "pros/apix.h"
 #include <vector>
 #include <iostream>
-#include <memory>
 
 #define VISION_FOV_WIDTH_ANGLE 1.0654
 

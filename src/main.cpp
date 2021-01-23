@@ -15,6 +15,7 @@ IMU Imu(4, IMUAxes::x);
 pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
 Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL, 30, .26);
+pros::ADILineSensor LowerSensor('A');
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -26,10 +27,11 @@ std::shared_ptr<OdomChassisController> Chassis = ChassisControllerBuilder()
 	.withOdometry() // TODO: 3 encoder odometry?
 	.buildOdometry(); // TODO: add PID gains?
 std::shared_ptr<XDriveModel> Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
+ScoringSystem Scoring(BottomRollers, TopRollers, Intakes);
 
 extern int autonNum;
 extern Position position;
-extern double translationalExpo, rotationalDR, rotationalExpo;
+extern Settings settings;
 
 // Misc
 template <typename T> int sgn(T val)
@@ -59,6 +61,18 @@ void initialize()
 	gui_loading_start();
 
 	// Initialization stuff
+	std::cout << "Loading Settings File... ";
+	if(settings.load())
+		std::cout << "success" << std::endl;
+	else
+		std::cout << "failure" << std::endl;
+
+	if(settings.calibrateImuOnStart)
+	{
+		std::cout << "Calibrating IMU... ";
+		Imu.calibrate();
+		std::cout << "done" << std::endl;
+	}
 
 	gui_loading_stop();
 	gui_main();
@@ -98,9 +112,9 @@ void driveCtlCb(void *params)
 	{
 		DriveMtx.lock();
 		Drive->xArcade(
-      drexpo(Cont.getAnalog(ControllerAnalog::leftX), 1.0, translationalExpo),
-      drexpo(Cont.getAnalog(ControllerAnalog::leftY) + Cont.getAnalog(ControllerAnalog::rightY), 1.0, translationalExpo),
-      drexpo(Cont.getAnalog(ControllerAnalog::rightX), rotationalDR, rotationalExpo));
+      drexpo(Cont.getAnalog(ControllerAnalog::leftX), 1.0, settings.translationalExpo),
+      drexpo(Cont.getAnalog(ControllerAnalog::leftY) + Cont.getAnalog(ControllerAnalog::rightY), 1.0, settings.translationalExpo),
+      drexpo(Cont.getAnalog(ControllerAnalog::rightX), settings.rotationalDR, settings.rotationalExpo));
 		DriveMtx.unlock();
 
     r.delay(50_Hz);
@@ -111,66 +125,43 @@ void intakeCtlCb(void *params)
 {
 	Rate r;
 
-	int intakeSpeed = 12000,
-			outtakeSpeed = 6000,
-			rollerSpeed = 12000;
-
 	while(true)
 	{
 		IntakeMtx.lock();
+
 		if(Cont.getDigital(ControllerDigital::R1)) // Cycle
-		{
-			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(rollerSpeed);
-			Intakes.moveVoltage(intakeSpeed);
-		}
+			Scoring.cycle();
+
 		else if(Cont.getDigital(ControllerDigital::R2)) // Descore
-		{
-			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(-rollerSpeed/2);
-			Intakes.moveVoltage(intakeSpeed);
-		}
+			Scoring.descore();
+
 		else if(Cont.getDigital(ControllerDigital::L2)) // Flush
-		{
-			BottomRollers.moveVoltage(-rollerSpeed);
-			Intakes.moveVoltage(-outtakeSpeed);
-		}
+			Scoring.flush();
+
 		else if(Cont.getDigital(ControllerDigital::up)) // Score
-		{
-			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(rollerSpeed);
-			Intakes.moveVoltage(0);
-		}
+			Scoring.score();
+
 		else if(Cont.getDigital(ControllerDigital::down)) // Eject
-		{
-			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(-rollerSpeed/2);
-			Intakes.moveVoltage(0);
-		}
+			Scoring.eject();
+
 		else if(Cont.getDigital(ControllerDigital::L1)) // Grab
-		{
-			BottomRollers.moveVoltage(rollerSpeed);
-			TopRollers.moveVoltage(0);
-			Intakes.moveVoltage(intakeSpeed);
-		}
+			Scoring.grab();
+
 		else if(Cont.getDigital(ControllerDigital::right)) // Top Only Forward
 		{
 			BottomRollers.moveVoltage(0);
-			TopRollers.moveVoltage(rollerSpeed);
+			TopRollers.moveVoltage(12000);
 			Intakes.moveVoltage(0);
 		}
 		else if(Cont.getDigital(ControllerDigital::left)) // Top Only Reverse
 		{
 			BottomRollers.moveVoltage(0);
-			TopRollers.moveVoltage(-rollerSpeed);
+			TopRollers.moveVoltage(-12000);
 			Intakes.moveVoltage(0);
 		}
 		else
-		{
-			BottomRollers.moveVoltage(0);
-			TopRollers.moveVoltage(0);
-			Intakes.moveVoltage(0);
-		}
+			Scoring.stop();
+
 		IntakeMtx.unlock();
 
 		r.delay(50_Hz);

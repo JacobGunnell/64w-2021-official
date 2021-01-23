@@ -1,5 +1,4 @@
-#ifndef NOAUTON_H // don't forget to change guard block name!!
-#define NOAUTON_H
+#pragma once
 
 
 #include "AutonBase.h"
@@ -15,5 +14,3 @@ public:
     // autonomous code goes here
   }
 };
-
-#endif // NOAUTON_H

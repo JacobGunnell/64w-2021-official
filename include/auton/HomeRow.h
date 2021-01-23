@@ -1,5 +1,4 @@
-#ifndef HOMEROW_H
-#define HOMEROW_H
+#pragma once
 
 
 #include "AutonBase.h"
@@ -15,5 +14,3 @@ public:
     // TODO: write some epic code
   }
 };
-
-#endif // HOMEROW_H

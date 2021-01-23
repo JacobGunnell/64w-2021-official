@@ -1,5 +1,4 @@
-#ifndef SKILLS_H
-#define SKILLS_H
+#pragma once
 
 
 #include "AutonBase.h"
@@ -13,13 +12,11 @@ public:
   void exec(Position p) override
   {
     Chassis->setState(OdomState{-36_in, -60_in, 0_deg});
-    //Scoring.deploy();
-    //Scoring.grab(1_s);
+    Scoring.deploy();
+    Scoring.grab(1_s);
     Chassis->driveToPoint(Point{-36_in, -36_in});
     Chassis->driveToPoint(Point{-48_in, -48_in});
-    //Scoring.score(2_s);
+    Scoring.score(2_s);
     Chassis->driveToPoint(Point{-36_in, -36_in}, true);
   }
 };
-
-#endif // SKILLS_H
