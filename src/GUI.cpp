@@ -10,6 +10,8 @@ static lv_res_t autonlist_action(lv_obj_t *);
 static lv_res_t translational_expo_slider_action(lv_obj_t *);
 static lv_res_t rotational_dr_slider_action(lv_obj_t *);
 static lv_res_t rotational_expo_slider_action(lv_obj_t *);
+static lv_res_t reset_button_action(lv_obj_t *);
+static lv_res_t calibrate_imu_sw_action(lv_obj_t *);
 
 static lv_res_t gui_mbox_destroy(lv_obj_t *, const char *);
 
@@ -177,15 +179,30 @@ void gui_main()
   lv_slider_set_action(rotational_expo_slider, rotational_expo_slider_action);
   lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
 
-  /*reset_label = lv_label_create(tuning, NULL);
-  lv_obj_align(reset_label, rotational_dr_label, LV_ALIGN_OUT_RIGHT_TOP, 40, 0);
   reset_button = lv_btn_create(tuning, NULL);
-  lv_obj_align(reset_button, reset_label, LV_ALIGN_OUT_BOTTOM_MID, 80, 0);*/
+  lv_obj_align(reset_button, rotational_expo_label, LV_ALIGN_OUT_BOTTOM_MID, 40, 40);
+  lv_cont_set_fit(reset_button, true, true);
+  lv_btn_set_action(reset_button, LV_BTN_ACTION_CLICK, reset_button_action);
+  reset_label = lv_label_create(reset_button, NULL);
+  lv_label_set_text(reset_label, "Reset");
 
 
-  lv_obj_t *settings = lv_tabview_add_tab(tabview, "Settings");
+  lv_obj_t *settingsTab = lv_tabview_add_tab(tabview, "Settings");
 
-  // TODO
+  lv_obj_t *calibrate_imu_label = lv_label_create(settingsTab, NULL);
+  lv_obj_align(calibrate_imu_label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  lv_label_set_text(calibrate_imu_label, "Calibrate IMU On Start");
+  lv_obj_t *calibrate_imu_sw = lv_sw_create(settingsTab, NULL);
+	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_BG, &pos_bg_style);
+	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_INDIC, &pos_indic_style);
+	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_KNOB_ON, &pos_knob_on_style);
+	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_KNOB_OFF, &pos_knob_off_style);
+	lv_obj_align(calibrate_imu_sw, calibrate_imu_label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
+	lv_sw_set_action(calibrate_imu_sw, calibrate_imu_sw_action);
+  if(settings.calibrateImuOnStart)
+    lv_sw_on(calibrate_imu_sw);
+  else
+    lv_sw_off(calibrate_imu_sw);
 }
 
 
@@ -255,6 +272,29 @@ static lv_res_t rotational_expo_slider_action(lv_obj_t *o)
   lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
   settings.save();
   return LV_RES_OK;
+}
+
+static lv_res_t reset_button_action(lv_obj_t *o)
+{
+  settings = Settings();
+  lv_slider_set_value(translational_expo_slider, settings.translationalExpo*100);
+  lv_slider_set_value(rotational_expo_slider, settings.rotationalExpo*100);
+  lv_slider_set_value(rotational_dr_slider, settings.rotationalDR*100);
+  lv_label_set_text(translational_expo_label, (std::string("Translational Expo.: ") + std::to_string(static_cast<int>(settings.translationalExpo*100)) + "%").c_str());
+  lv_label_set_text(rotational_dr_label, (std::string("Rotational D/R: ") + std::to_string(static_cast<int>(settings.rotationalDR*100)) + "%").c_str());
+  lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
+  settings.save();
+  return LV_RES_OK;
+}
+
+static lv_res_t calibrate_imu_sw_action(lv_obj_t *o)
+{
+  settings.calibrateImuOnStart = !settings.calibrateImuOnStart;
+  settings.save();
+  if(settings.calibrateImuOnStart)
+    lv_sw_on(o);
+  else
+    lv_sw_off(o);
 }
 
 static lv_res_t gui_mbox_destroy(lv_obj_t *obj, const char *c)

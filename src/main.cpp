@@ -15,7 +15,7 @@ IMU Imu(4, IMUAxes::x);
 pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
 Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL, 30, .26);
-pros::ADILineSensor LowerSensor('A');
+pros::ADILineSensor LowerSensor('E');
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -23,8 +23,9 @@ CrossplatformMutex DriveMtx, IntakeMtx;
 // Other Objects
 std::shared_ptr<OdomChassisController> Chassis = ChassisControllerBuilder()
 	.withMotors(1, -10, -20, 11)
-	.withDimensions(AbstractMotor::gearset::green, {{4_in, 13_in}, imev5GreenTPR}) // TODO: update dimensions
-	.withOdometry() // TODO: 3 encoder odometry?
+	.withDimensions(AbstractMotor::gearset::green, {{4_in, 13_in}, imev5GreenTPR})
+	.withSensors(ADIEncoder{'A', 'B'}, ADIEncoder{'C', 'D'})
+	.withOdometry({{2.75_in, 11.3125_in}, quadEncoderTPR})
 	.buildOdometry(); // TODO: add PID gains?
 std::shared_ptr<XDriveModel> Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
 ScoringSystem Scoring(BottomRollers, TopRollers, Intakes);
@@ -116,6 +117,9 @@ void driveCtlCb(void *params)
       drexpo(Cont.getAnalog(ControllerAnalog::leftY) + Cont.getAnalog(ControllerAnalog::rightY), 1.0, settings.translationalExpo),
       drexpo(Cont.getAnalog(ControllerAnalog::rightX), settings.rotationalDR, settings.rotationalExpo));
 		DriveMtx.unlock();
+
+		auto state = Chassis->getState();
+		Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,3) + " " + std::to_string(state.y.convert(inch)).substr(0,3) + " " + std::to_string(state.theta.convert(degree)).substr(0,3));
 
     r.delay(50_Hz);
 	}
