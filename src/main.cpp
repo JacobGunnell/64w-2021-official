@@ -15,7 +15,8 @@ IMU Imu(4, IMUAxes::x);
 pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
 Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL, 30, .26);
-pros::ADILineSensor LowerSensor('E');
+pros::ADILineSensor LowerLightSensor('G');
+pros::ADILineSensor UpperLightSensor('H');
 
 // Mutexes
 CrossplatformMutex DriveMtx, IntakeMtx;
@@ -23,12 +24,30 @@ CrossplatformMutex DriveMtx, IntakeMtx;
 // Other Objects
 std::shared_ptr<OdomChassisController> Chassis = ChassisControllerBuilder()
 	.withMotors(1, -10, -20, 11)
-	.withDimensions(AbstractMotor::gearset::green, {{4_in, 13_in}, imev5GreenTPR})
-	.withSensors(ADIEncoder{'A', 'B'}, ADIEncoder{'C', 'D'})
-	.withOdometry({{2.75_in, 11.3125_in}, quadEncoderTPR})
-	.buildOdometry(); // TODO: add PID gains?
+	.withGains(
+		{.001, .00005, 0}, // distance controller pid gains
+		{.004, 0, 0}, // turn controller pid gains
+		{.002, .0001, 0} // angle controller pid gains
+	)
+	.withSensors(
+		ADIEncoder{'A', 'B'}, // left encoder
+		ADIEncoder{'C', 'D', true}, // right encoder (reversed)
+		ADIEncoder{'E', 'F'} // middle encoder
+	)
+	.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 10.87_in, 4.3_in, 2.75_in}, quadEncoderTPR})
+	//.withMaxVelocity(150)
+	.withOdometry(StateMode::CARTESIAN)
+	.buildOdometry();
+std::shared_ptr<AsyncMotionProfileController> ProfileController = AsyncMotionProfileControllerBuilder()
+	.withLimits({
+		1.0, // max linear velocity
+		2.0, // max linear acceleration
+		10.0 // max linear jerk
+	})
+	.withOutput(Chassis)
+	.buildMotionProfileController();
 std::shared_ptr<XDriveModel> Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
-ScoringSystem Scoring(BottomRollers, TopRollers, Intakes);
+ScoringSystem Scoring(BottomRollers, TopRollers, Intakes, LowerLightSensor, UpperLightSensor);
 
 extern int autonNum;
 extern Position position;
@@ -51,7 +70,7 @@ float drexpo(float, double, double);
 // Function Implementations
 void initialize()
 {
-	std::cout << "Robot Online" << std::endl << "64W Competition Program Rev. " << VERSION_MAJOR << "." << VERSION_MINOR << "." << VERSION_PATCH << VERSION_INFO << "-" << VERSION_YEAR << " with ";
+	std::cout << "Robot Online" << std::endl << "64W Competition Program Rev. " << VERSION_MAJOR << "." << VERSION_MINOR << VERSION_INFO << "-" << VERSION_YEAR << " with ";
 	if (__cplusplus == 201703L) std::cout << "C++17\n";
   else if (__cplusplus == 201402L) std::cout << "C++14\n";
   else if (__cplusplus == 201103L) std::cout << "C++11\n";
@@ -75,6 +94,10 @@ void initialize()
 		std::cout << "done" << std::endl;
 	}
 
+	std::cout << "Initializing all Autonomous Routines... ";
+	//AutonBase::initAll();
+	std::cout << "done" << std::endl;
+
 	gui_loading_stop();
 	gui_main();
 
@@ -84,6 +107,7 @@ void initialize()
 void disabled()
 {
 	std::cout << "Robot disabled" << std::endl;
+	Drive->stop();
 }
 
 void competition_initialize() {} // TODO: should we make a seperate init for comps?
@@ -118,8 +142,13 @@ void driveCtlCb(void *params)
       drexpo(Cont.getAnalog(ControllerAnalog::rightX), settings.rotationalDR, settings.rotationalExpo));
 		DriveMtx.unlock();
 
+		/*
 		auto state = Chassis->getState();
-		Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,3) + " " + std::to_string(state.y.convert(inch)).substr(0,3) + " " + std::to_string(state.theta.convert(degree)).substr(0,3));
+		Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
+		*/
+
+		if(Cont.getDigital(ControllerDigital::B))
+			Chassis->setState(OdomState{0_in, 0_in, 0_deg});
 
     r.delay(50_Hz);
 	}
