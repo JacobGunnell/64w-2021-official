@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 
+constexpr QLength t = 23.75_in; // tile size; TODO: do this more elegantly with an operator""
+
 struct Position
 {
   enum {RED, BLUE} side;

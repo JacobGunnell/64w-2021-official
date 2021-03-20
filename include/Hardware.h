@@ -26,6 +26,6 @@ extern CrossplatformMutex DriveMtx, IntakeMtx;
 extern std::shared_ptr<OdomChassisController> Chassis;
 extern std::shared_ptr<AsyncMotionProfileController> ProfileController;
 extern std::shared_ptr<XDriveModel> Drive;
-extern ScoringSystem Scoring;
+extern std::shared_ptr<ScoringSystem> Scoring;
 
 #endif // HARDWARE_H

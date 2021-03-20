@@ -5,8 +5,9 @@
 void ScoringSystem::deploy()
 {
   BottomRollers.moveVoltage(rollerSpeed);
-  pros::delay(500); // TODO: use imu to sense when robot has successfully deployed
-  BottomRollers.moveVoltage(0);
+  TopRollers.moveVoltage(rollerSpeed);
+  pros::delay(500); // TODO: use imu to sense when robot has successfully deployed?
+  stop();
 }
 
 void ScoringSystem::cycle()

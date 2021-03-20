@@ -4,7 +4,8 @@ std::vector<std::unique_ptr<AutonBase>> AutonBase::getAllObjs()
 {
   std::vector<std::unique_ptr<AutonBase>> objs;
   // (Auton.h > ) ...and add one of these
-  objs.push_back(std::unique_ptr<AutonBase>(new Skills));
+  objs.push_back(std::unique_ptr<AutonBase>(new Skills159));
+  objs.push_back(std::unique_ptr<AutonBase>(new Skills14));
   objs.push_back(std::unique_ptr<AutonBase>(new HomeRow));
 
   objs.push_back(std::unique_ptr<AutonBase>(new NoAuton)); // leave this one last

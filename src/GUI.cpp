@@ -29,6 +29,16 @@ static lv_obj_t *rotational_expo_label;
 static lv_obj_t *reset_label;
 static lv_obj_t *reset_button;
 
+static lv_obj_t *drive_p_slider;
+static lv_obj_t *drive_i_slider;
+static lv_obj_t *drive_d_slider;
+static lv_obj_t *turn_p_slider;
+static lv_obj_t *turn_i_slider;
+static lv_obj_t *turn_d_slider;
+static lv_obj_t *angle_p_slider;
+static lv_obj_t *angle_i_slider;
+static lv_obj_t *angle_d_slider;
+
 
 void gui_loading_start()
 {
@@ -203,6 +213,25 @@ void gui_main()
     lv_sw_on(calibrate_imu_sw);
   else
     lv_sw_off(calibrate_imu_sw);
+
+  /*
+  lv_obj_t *pidTab = lv_tabview_add_tab(tabview, "PID");
+
+  lv_obj_t *drive_label = lv_label_create(pidTab, NULL);
+  lv_obj_align(drive_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 0);
+  lv_label_set_text(drive_label, "Drive Gains");
+  drive_p_slider = lv_slider_create(pidTab, NULL);
+  lv_obj_set_width(drive_p_slider, 130);
+  lv_obj_align(drive_p_slider, drive_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+  lv_obj_set_free_num(drive_p_slider, 0);
+  drive_i_slider = lv_slider_create(pidTab, NULL);
+  lv_obj_set_width(drive_i_slider, 130);
+  lv_obj_align(drive_i_slider, drive_p_slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+  lv_obj_set_free_num(drive_i_slider, 1);
+  drive_d_slider = lv_slider_create(pidTab, NULL);
+  lv_obj_set_width(drive_d_slider, 130);
+  lv_obj_align(drive_d_slider, drive_i_slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+  lv_obj_set_free_num(drive_d_slider, 2);*/
 }
 
 
