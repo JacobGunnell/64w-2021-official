@@ -3,12 +3,12 @@
 
 #include "AutonBase.h"
 
-class NoAuton : public AutonBase // use this as a template for new autonomous routines; also, remember to add the new headers to Auton.h and AutonBase.cpp when you're finished
+class Skills147 : public AutonBase
 {
 public:
-  std::string getName() const override { return "Skills* 147"; } // name of routine here
-  int getPoints() const override { return 0; } // points here
-  std::string getDescription() const override { return ""; } // description here
+  std::string getName() const override { return "Skills 147"; } // name of routine here
+  int getPoints() const override { return 45; } // points here
+  std::string getDescription() const override { return "Starts in tile 6 and scores in goals 1 4 & 7."; } // description here
   void exec(Position p) override
   {
     // Starting Position
@@ -21,5 +21,26 @@ public:
     Scoring->grab();
     Chassis->driveToPoint({-26_in, 0_in}, false, 5_in);
     Scoring->stop();
+
+    // Score in goal 4
+    Chassis->turnToPoint({-3*t, 0_in});
+    Drive->forward(1);
+    pros::delay(1000);
+    Drive->stop();
+    Scoring->score(1_s);
+    Chassis->driveToPoint({-26_in, 0_in}, true);
+
+    // Grab ball at (-48, 36)
+    Scoring->grab();
+    Chassis->driveToPoint({-2*t, 1.5*t}, false, -6_in);
+    Scoring->stop();
+
+    // Score in goal 7
+    Chassis->turnToPoint({-3*t, 3*t});
+    Drive->forward(1);
+    pros::delay(1000);
+    Drive->stop();
+    Scoring->score(1_s);
+    Chassis->driveToPoint({-1.5*t, 1.5*t}, true);
   }
 };
