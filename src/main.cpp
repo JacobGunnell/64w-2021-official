@@ -40,7 +40,6 @@ template <typename T> int sgn(T val)
 // Function Prototypes
 void driveCtlCb(void *);
 void intakeCtlCb(void *);
-void tempCheckCb(void *);
 void visionTrackingCb(void *);
 float drexpo(float, double, double);
 
@@ -154,8 +153,8 @@ void opcontrol()
 	std::cout << "Entering operator control mode" << std::endl;
 	pros::Task DriveCtl(&driveCtlCb, NULL);
 	pros::Task IntakeCtl(&intakeCtlCb, NULL);
-	pros::Task TempCheck(&tempCheckCb, NULL);
-	pros::Task VisionTracking(&visionTrackingCb, NULL);
+	if(settings.enableVisionTracking)
+		pros::Task VisionTracking(&visionTrackingCb, NULL);
 }
 
 // Tasks
@@ -231,25 +230,6 @@ void intakeCtlCb(void *params)
 		IntakeMtx.unlock();
 
 		r.delay(50_Hz);
-	}
-}
-
-void tempCheckCb(void *params)
-{
-	Rate r;
-
-	while(true)
-	{
-		if(TopRollers.isOverTemp())
-		{
-			Cont.rumble("-");
-			pros::delay(200);
-			Cont.setText(2, 0, "Over Temp!");
-		}
-		else
-			Cont.clearLine(2);
-
-		r.delay(.1_Hz);
 	}
 }
 

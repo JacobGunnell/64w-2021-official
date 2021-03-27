@@ -17,7 +17,7 @@ extern MotorGroup Intakes;
 extern Controller Cont;
 extern IMU Imu;
 extern Vision<10> Camera;
-extern pros::ADILineSensor LowerLightSensor;
+extern pros::ADILineSensor LowerLightSensor, UpperLightSensor;
 
 // Mutexes
 extern CrossplatformMutex DriveMtx, IntakeMtx;

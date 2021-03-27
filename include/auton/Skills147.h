@@ -6,9 +6,9 @@
 class Skills147 : public AutonBase
 {
 public:
-  std::string getName() const override { return "Skills 147"; } // name of routine here
-  int getPoints() const override { return 45; } // points here
-  std::string getDescription() const override { return "Starts in tile 6 and scores in goals 1 4 & 7."; } // description here
+  std::string getName() const override { return "Skills 147"; }
+  int getPoints() const override { return 45; }
+  std::string getDescription() const override { return "Starts in tile 6 and scores in goals 1 4 & 7."; }
   void exec(Position p) override
   {
     // Starting Position

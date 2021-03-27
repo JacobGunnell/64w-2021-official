@@ -12,6 +12,7 @@ static lv_res_t rotational_dr_slider_action(lv_obj_t *);
 static lv_res_t rotational_expo_slider_action(lv_obj_t *);
 static lv_res_t reset_button_action(lv_obj_t *);
 static lv_res_t calibrate_imu_sw_action(lv_obj_t *);
+static lv_res_t enable_vision_tracking_sw_action(lv_obj_t *);
 
 static lv_res_t gui_mbox_destroy(lv_obj_t *, const char *);
 
@@ -28,7 +29,10 @@ static lv_obj_t *rotational_expo_slider;
 static lv_obj_t *rotational_expo_label;
 static lv_obj_t *reset_label;
 static lv_obj_t *reset_button;
+static lv_obj_t *calibrate_imu_sw;
+static lv_obj_t *enable_vision_tracking_sw;
 
+/*
 static lv_obj_t *drive_p_slider;
 static lv_obj_t *drive_i_slider;
 static lv_obj_t *drive_d_slider;
@@ -38,6 +42,7 @@ static lv_obj_t *turn_d_slider;
 static lv_obj_t *angle_p_slider;
 static lv_obj_t *angle_i_slider;
 static lv_obj_t *angle_d_slider;
+*/
 
 
 void gui_loading_start()
@@ -202,7 +207,7 @@ void gui_main()
   lv_obj_t *calibrate_imu_label = lv_label_create(settingsTab, NULL);
   lv_obj_align(calibrate_imu_label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
   lv_label_set_text(calibrate_imu_label, "Calibrate IMU On Start");
-  lv_obj_t *calibrate_imu_sw = lv_sw_create(settingsTab, NULL);
+  calibrate_imu_sw = lv_sw_create(settingsTab, NULL);
 	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_BG, &pos_bg_style);
 	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_INDIC, &pos_indic_style);
 	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_KNOB_ON, &pos_knob_on_style);
@@ -213,6 +218,21 @@ void gui_main()
     lv_sw_on(calibrate_imu_sw);
   else
     lv_sw_off(calibrate_imu_sw);
+
+  lv_obj_t *enable_vision_tracking_label = lv_label_create(settingsTab, NULL);
+  lv_obj_align(enable_vision_tracking_label, calibrate_imu_sw, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+  lv_label_set_text(enable_vision_tracking_label, "Enable Vision Tracking");
+  enable_vision_tracking_sw = lv_sw_create(settingsTab, NULL);
+	lv_sw_set_style(enable_vision_tracking_sw, LV_SW_STYLE_BG, &pos_bg_style);
+	lv_sw_set_style(enable_vision_tracking_sw, LV_SW_STYLE_INDIC, &pos_indic_style);
+	lv_sw_set_style(enable_vision_tracking_sw, LV_SW_STYLE_KNOB_ON, &pos_knob_on_style);
+	lv_sw_set_style(enable_vision_tracking_sw, LV_SW_STYLE_KNOB_OFF, &pos_knob_off_style);
+	lv_obj_align(enable_vision_tracking_sw, enable_vision_tracking_label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
+	lv_sw_set_action(enable_vision_tracking_sw, enable_vision_tracking_sw_action);
+  if(settings.enableVisionTracking)
+    lv_sw_on(enable_vision_tracking_sw);
+  else
+    lv_sw_off(enable_vision_tracking_sw);
 
   /*
   lv_obj_t *pidTab = lv_tabview_add_tab(tabview, "PID");
@@ -312,6 +332,14 @@ static lv_res_t reset_button_action(lv_obj_t *o)
   lv_label_set_text(translational_expo_label, (std::string("Translational Expo.: ") + std::to_string(static_cast<int>(settings.translationalExpo*100)) + "%").c_str());
   lv_label_set_text(rotational_dr_label, (std::string("Rotational D/R: ") + std::to_string(static_cast<int>(settings.rotationalDR*100)) + "%").c_str());
   lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
+  if(settings.calibrateImuOnStart)
+    lv_sw_on(calibrate_imu_sw);
+  else
+    lv_sw_off(calibrate_imu_sw);
+  if(settings.enableVisionTracking)
+    lv_sw_on(enable_vision_tracking_sw);
+  else
+    lv_sw_off(enable_vision_tracking_sw);
   settings.save();
   return LV_RES_OK;
 }
@@ -321,6 +349,16 @@ static lv_res_t calibrate_imu_sw_action(lv_obj_t *o)
   settings.calibrateImuOnStart = !settings.calibrateImuOnStart;
   settings.save();
   if(settings.calibrateImuOnStart)
+    lv_sw_on(o);
+  else
+    lv_sw_off(o);
+}
+
+static lv_res_t enable_vision_tracking_sw_action(lv_obj_t *o)
+{
+  settings.enableVisionTracking = !settings.enableVisionTracking;
+  settings.save();
+  if(settings.enableVisionTracking)
     lv_sw_on(o);
   else
     lv_sw_off(o);
