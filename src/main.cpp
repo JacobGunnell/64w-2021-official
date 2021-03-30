@@ -11,10 +11,8 @@ MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor:
 
 // Sensor Objects
 Controller Cont(ControllerId::master);
-IMU Imu(4, IMUAxes::x);
-pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
-pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
-Vision<10> Camera(19, 150, RED_BALL, BLUE_BALL, 30, .26);
+IMU Imu(4);
+std::shared_ptr<Vision<10>> Camera;
 pros::ADILineSensor LowerLightSensor('G');
 pros::ADILineSensor UpperLightSensor('H');
 
@@ -23,8 +21,10 @@ CrossplatformMutex DriveMtx, IntakeMtx;
 
 // Facilities Control Objects
 std::shared_ptr<OdomChassisController> Chassis;
+std::shared_ptr<AsyncMotionProfileController> ProfileController;
 std::shared_ptr<XDriveModel> Drive;
 std::shared_ptr<ScoringSystem> Scoring;
+std::shared_ptr<Robot> Gary;
 
 extern int autonNum;
 extern Position position;
@@ -74,10 +74,18 @@ void initialize()
 		std::cout << "failure" << std::endl;
 
 
+	std::cout << "Calibrating Light Sensors... ";
+	LowerLightSensor.calibrate();
+	UpperLightSensor.calibrate();
+	std::cout << "done" << std::endl;
+
+
 	if(settings.calibrateImuOnStart)
 	{
 		std::cout << "Calibrating IMU... ";
 		Imu.calibrate();
+		while(Imu.isCalibrating())
+			pros::delay(10);
 		std::cout << "done" << std::endl;
 	}
 
@@ -105,7 +113,7 @@ void initialize()
 		)
 		.withDerivativeFilters(std::make_unique<AverageFilter<3>>())
 		.withSensors(LeftQuad, RightQuad, MiddleQuad)
-		.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 11_in, 4.3_in, 2.75_in}, quadEncoderTPR})
+		.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 11.25_in, 3.84_in, 2.75_in}, quadEncoderTPR})
 		.withMaxVelocity(100)
 		.withOdometry(StateMode::CARTESIAN)
 		.buildOdometry();
@@ -113,6 +121,13 @@ void initialize()
 	Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
 
 	Scoring = std::make_shared<ScoringSystem>(BottomRollers, TopRollers, Intakes, LowerLightSensor, UpperLightSensor);
+
+	pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
+	pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
+	pros::vision_signature_s_t GOAL = pros::Vision::signature_from_utility (3, -3093, -1459, -2276, -4603, -2491, -3547, 2.000, 0);
+	Camera = std::make_shared<Vision<10>>(19, 150, RED_BALL, BLUE_BALL, GOAL, 30, .26);
+
+	Gary = std::make_shared<Robot>(Chassis, ProfileController, Scoring, Camera);
 
 	std::cout << "done" << std::endl;
 
@@ -172,7 +187,7 @@ void driveCtlCb(void *params)
 		DriveMtx.unlock();
 
 		auto state = Chassis->getState();
-		//state.theta = QAngle(Imu.get());
+		//state.theta = Imu.get() * degree;
 		//Chassis->setState(state);
 		Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
 
@@ -181,6 +196,11 @@ void driveCtlCb(void *params)
 			Chassis->setState(OdomState{0_in, 0_in, 0_deg});
 			//Imu.reset();
 		}
+		else if(Cont.getDigital(ControllerDigital::X))
+			Chassis->setState(OdomState{-3*t + 12_in, -54.5_in, 26_deg});
+
+		if(Cont.getDigital(ControllerDigital::Y))
+			Chassis->turnToAngle(90_deg);
 
     r.delay(50_Hz);
 	}
@@ -194,14 +214,14 @@ void intakeCtlCb(void *params)
 	{
 		IntakeMtx.lock();
 
-		if(Cont.getDigital(ControllerDigital::R1)) // Cycle
+		if(Cont.getDigital(ControllerDigital::L2)) // Flush
+			Scoring->flush();
+
+		else if(Cont.getDigital(ControllerDigital::R1)) // Cycle
 			Scoring->cycle();
 
 		else if(Cont.getDigital(ControllerDigital::R2)) // Descore
 			Scoring->descore();
-
-		else if(Cont.getDigital(ControllerDigital::L2)) // Flush
-			Scoring->flush();
 
 		else if(Cont.getDigital(ControllerDigital::up)) // Score
 			Scoring->score();
@@ -212,11 +232,11 @@ void intakeCtlCb(void *params)
 		else if(Cont.getDigital(ControllerDigital::L1)) // Grab
 			Scoring->grab();
 
-		else if(Cont.getDigital(ControllerDigital::right)) // Top Only Forward
+		else if(Cont.getDigital(ControllerDigital::right)) // Intakes Only Reverse
 		{
 			BottomRollers.moveVoltage(0);
-			TopRollers.moveVoltage(12000);
-			Intakes.moveVoltage(0);
+			TopRollers.moveVoltage(0);
+			Intakes.moveVoltage(-12000);
 		}
 		else if(Cont.getDigital(ControllerDigital::left)) // Top Only Reverse
 		{
@@ -239,7 +259,7 @@ void visionTrackingCb(void *params)
 
 	while(true)
 	{
-		Camera.update();
+		Camera->update();
 
 		if(Cont.getDigital(ControllerDigital::A))
 		{
@@ -253,10 +273,10 @@ void visionTrackingCb(void *params)
 			BottomRollers.moveVoltage(12000);
 			while(Cont.getDigital(ControllerDigital::A))
 			{
-				Camera.update();
-				if(Camera.size() > 0)
+				Camera->update();
+				if(Camera->size() > 0)
 				{
-					auto target = Camera[0];
+					auto target = (*Camera)[0];
 					Drive->driveVector(baseSpeed - speedRolloff*target.y.getOutput(), turnGain*target.x.getOutput());
 				}
 				else

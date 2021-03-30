@@ -10,7 +10,7 @@ using namespace okapi;
 
 #define VISION_FOV_WIDTH_ANGLE 1.0654
 
-enum Color {RED=1, BLUE=2};
+enum Color {RED=1, BLUE=2, GOAL=3, NONE=0};
 
 template<std::size_t n> struct Ball
 {
@@ -22,10 +22,13 @@ template<std::size_t n> struct Ball
 template<std::size_t n> class Vision : protected pros::Vision
 {
 public:
-  Vision(int, int, pros::vision_signature_s_t, pros::vision_signature_s_t, float, float);
+  Vision(int, int, pros::vision_signature_s_t, pros::vision_signature_s_t, pros::vision_signature_s_t, float, float);
   const Ball<n> &operator[](int idx) const { return balls.at(idx); }
   const Ball<n> &at(int idx) const { return balls.at(idx); }
   int size() const { return balls.size(); }
+
+  const Ball<n> *largest() const { if(balls.size() > 0) return &balls.at(0); else return NULL; }
+  const Ball<n> *largest(Color);
 
   void update();
 

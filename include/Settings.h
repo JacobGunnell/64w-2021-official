@@ -30,6 +30,12 @@ struct Settings
         return false;
       }
   	}
+    else
+    {
+      file.close();
+      *this = Settings();
+      return false;
+    }
   }
 
   void save(std::string filename = "/usd/settings.dat")

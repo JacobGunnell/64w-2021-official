@@ -1,15 +1,24 @@
 #include "Vision.h"
 
-template<std::size_t n> Vision<n>::Vision(int port, int exposure, pros::vision_signature_s_t redsig, pros::vision_signature_s_t bluesig, float cameraHeight_, float depressionAngle_) : pros::Vision(port), cameraHeight(cameraHeight_), depressionAngle(depressionAngle_)
+template<std::size_t n> Vision<n>::Vision(int port, int exposure, pros::vision_signature_s_t redsig, pros::vision_signature_s_t bluesig, pros::vision_signature_s_t goalsig, float cameraHeight_, float depressionAngle_) : pros::Vision(port), cameraHeight(cameraHeight_), depressionAngle(depressionAngle_)
 {
   set_exposure(exposure);
   set_signature(RED, &redsig);
   set_signature(BLUE, &bluesig);
+  set_signature(GOAL, &goalsig);
   set_zero_point(pros::vision_zero_e_t::E_VISION_ZERO_CENTER);
   minBallArea = 60;
   maxBallArea = 220; // very lenient values (this is mostly to filter out the little blips the camera catches that definitely aren't Balls)
   ballRadius = 8;
   maxMotionToleranceSq = 16*16;
+}
+
+template<std::size_t n> const Ball<n> *Vision<n>::largest(Color c)
+{
+  for(const auto &ball : balls)
+    if(ball.color == c)
+      return &ball;
+  return NULL;
 }
 
 template<std::size_t n> void Vision<n>::update()
@@ -88,6 +97,8 @@ template<std::size_t n> void Vision<n>::print()
       std::cout << "red ";
     else if(it->color == BLUE)
       std::cout << "blue ";
+    else if(it->color == GOAL)
+      std::cout << "[goal] ";
     std::cout << "ball at " << it->x.getOutput() << "," << it->y.getOutput() << std::endl;
   }
 }

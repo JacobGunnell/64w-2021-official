@@ -9,8 +9,11 @@ using namespace okapi;
 class ScoringSystem
 {
 public:
-  ScoringSystem(Motor &br, Motor &tr, MotorGroup &i, pros::ADILineSensor &l, pros::ADILineSensor &u, unsigned int intakespeed = 12000, unsigned int outtakespeed = 6000, unsigned int rollerspeed = 12000, unsigned int lightSensorThreshold = 2000)
+  ScoringSystem(Motor &br, Motor &tr, MotorGroup &i, pros::ADILineSensor &l, pros::ADILineSensor &u, int intakespeed = 12000, int outtakespeed = 6000, int rollerspeed = 12000, int lightSensorThreshold = -100)
     : BottomRollers(br), TopRollers(tr), Intakes(i), LowerLightSensor(l), UpperLightSensor(u), intakeSpeed(intakespeed), outtakeSpeed(outtakespeed), rollerSpeed(rollerspeed) {}
+
+  pros::ADILineSensor &getLowerLightSensor() const { return LowerLightSensor; }
+  pros::ADILineSensor &getUpperLightSensor() const { return UpperLightSensor; }
 
   void deploy();
   void cycle();
@@ -28,6 +31,7 @@ public:
   void score(QTime t) { score(); pros::delay(t.convert(millisecond)); stop(); }
   void eject(QTime t) { eject(); pros::delay(t.convert(millisecond)); stop(); }
 
+  bool hasBall() { return UpperLightSensor.get_value_calibrated() < lightSensorThreshold; } // TODO: hysteresis?
   void grabSensor(QTime);
 
 private:
@@ -37,7 +41,7 @@ private:
 
   pros::ADILineSensor &LowerLightSensor, &UpperLightSensor;
 
-  unsigned int intakeSpeed, outtakeSpeed, rollerSpeed, lightSensorThreshold;
+  int intakeSpeed, outtakeSpeed, rollerSpeed, lightSensorThreshold;
 };
 
 #endif // SCORINGSYSTEM_H

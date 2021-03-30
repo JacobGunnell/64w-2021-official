@@ -7,6 +7,7 @@ using namespace okapi;
 #include "pros/apix.h"
 #include "Vision.h"
 #include "ScoringSystem.h"
+#include "Robot.h"
 
 // Motor objects
 extern Motor BottomRollers;
@@ -16,7 +17,7 @@ extern MotorGroup Intakes;
 // Sensor objects
 extern Controller Cont;
 extern IMU Imu;
-extern Vision<10> Camera;
+extern std::shared_ptr<Vision<10>> Camera;
 extern pros::ADILineSensor LowerLightSensor, UpperLightSensor;
 
 // Mutexes
@@ -27,5 +28,6 @@ extern std::shared_ptr<OdomChassisController> Chassis;
 extern std::shared_ptr<AsyncMotionProfileController> ProfileController;
 extern std::shared_ptr<XDriveModel> Drive;
 extern std::shared_ptr<ScoringSystem> Scoring;
+extern std::shared_ptr<Robot> Gary;
 
 #endif // HARDWARE_H
