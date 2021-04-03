@@ -9,8 +9,9 @@ struct Settings
   double translationalExpo = .2;
   double rotationalDR = 1.0;
   double rotationalExpo = .15;
-  bool calibrateImuOnStart = false;
+  bool enableImu = false;
   bool enableVisionTracking = false;
+  bool enableBlackbox = false;
 
   bool load(std::string filename = "/usd/settings.dat")
   {

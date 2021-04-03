@@ -60,15 +60,29 @@ void ScoringSystem::stop()
 
 // Smart Definitions
 
-void ScoringSystem::grabSensor(QTime t)
+void ScoringSystem::grabSensor(QTime timeout)
 {
   Rate r;
   Timer timer;
-  QTime stopTime = timer.millis() + t;
-  while(LowerLightSensor.get_value() > lightSensorThreshold && timer.millis() < stopTime) // TODO: get_value_calibrated?
+  QTime stopTime = timer.millis() + timeout;
+  while(!hasBall() && timer.millis() < stopTime)
   {
     grab();
     r.delay(10_Hz);
   }
+  stop();
+}
+
+void ScoringSystem::scoreSensor(QTime timeout, QTime extra)
+{
+  Rate r;
+  Timer timer;
+  QTime stopTime = timer.millis() + timeout - extra;
+  while(hasBall() && timer.millis() < stopTime)
+  {
+    score();
+    r.delay(10_Hz);
+  }
+  pros::delay(extra.convert(millisecond));
   stop();
 }

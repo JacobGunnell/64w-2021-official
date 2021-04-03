@@ -62,7 +62,7 @@ void Robot::fetchBall(QTime timeout, double power)
 
 void Robot::strafeToPoint(Point target)
 {
-  
+  // TODO
 }
 
 void Robot::logBlackboxFrame()
@@ -78,27 +78,36 @@ void Robot::logBlackboxFrame()
   cameraobjs.push_back(Camera->size());
 }
 
-bool Robot::saveBlackbox(std::string filename)
+bool Robot::saveBlackbox(std::string filename) // TODO: make this default to saving into a new file (i.e. blackbox22.csv)
 {
   std::ofstream file(filename, std::ofstream::trunc);
-  for(const auto &el : r_x)
-    file << el << ',';
-  file << std::endl;
-  for(const auto &el : r_y)
-    file << el << ',';
-  file << std::endl;
-  for(const auto &el : r_theta)
-    file << el << ',';
-  file << std::endl;
-  for(const auto &el : upperlight)
-    file << el << ',';
-  file << std::endl;
-  for(const auto &el : lowerlight)
-    file << el << ',';
-  file << std::endl;
-  for(const auto &el : cameraobjs)
-    file << el << ',';
-  file.close();
+  if(file)
+  {
+    for(const auto &el : r_x)
+      file << el << ',';
+    file << std::endl;
+    for(const auto &el : r_y)
+      file << el << ',';
+    file << std::endl;
+    for(const auto &el : r_theta)
+      file << el << ',';
+    file << std::endl;
+    for(const auto &el : upperlight)
+      file << el << ',';
+    file << std::endl;
+    for(const auto &el : lowerlight)
+      file << el << ',';
+    file << std::endl;
+    for(const auto &el : cameraobjs)
+      file << el << ',';
+    file.close();
+    return true;
+  }
+  else
+  {
+    file.close();
+    return false;
+  }
 }
 
 void Robot::clearBlackbox()

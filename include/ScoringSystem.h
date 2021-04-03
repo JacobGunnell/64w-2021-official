@@ -33,6 +33,7 @@ public:
 
   bool hasBall() { return UpperLightSensor.get_value_calibrated() < lightSensorThreshold; } // TODO: hysteresis?
   void grabSensor(QTime);
+  void scoreSensor(QTime, QTime = 500_ms);
 
 private:
   Motor &BottomRollers;

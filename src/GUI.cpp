@@ -11,8 +11,9 @@ static lv_res_t translational_expo_slider_action(lv_obj_t *);
 static lv_res_t rotational_dr_slider_action(lv_obj_t *);
 static lv_res_t rotational_expo_slider_action(lv_obj_t *);
 static lv_res_t reset_button_action(lv_obj_t *);
-static lv_res_t calibrate_imu_sw_action(lv_obj_t *);
+static lv_res_t enable_imu_sw_action(lv_obj_t *);
 static lv_res_t enable_vision_tracking_sw_action(lv_obj_t *);
+static lv_res_t enable_blackbox_sw_action(lv_obj_t *);
 
 static lv_res_t gui_mbox_destroy(lv_obj_t *, const char *);
 
@@ -29,20 +30,9 @@ static lv_obj_t *rotational_expo_slider;
 static lv_obj_t *rotational_expo_label;
 static lv_obj_t *reset_label;
 static lv_obj_t *reset_button;
-static lv_obj_t *calibrate_imu_sw;
+static lv_obj_t *enable_imu_sw;
 static lv_obj_t *enable_vision_tracking_sw;
-
-/*
-static lv_obj_t *drive_p_slider;
-static lv_obj_t *drive_i_slider;
-static lv_obj_t *drive_d_slider;
-static lv_obj_t *turn_p_slider;
-static lv_obj_t *turn_i_slider;
-static lv_obj_t *turn_d_slider;
-static lv_obj_t *angle_p_slider;
-static lv_obj_t *angle_i_slider;
-static lv_obj_t *angle_d_slider;
-*/
+static lv_obj_t *enable_blackbox_sw;
 
 
 void gui_loading_start()
@@ -204,23 +194,23 @@ void gui_main()
 
   lv_obj_t *settingsTab = lv_tabview_add_tab(tabview, "Settings");
 
-  lv_obj_t *calibrate_imu_label = lv_label_create(settingsTab, NULL);
-  lv_obj_align(calibrate_imu_label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
-  lv_label_set_text(calibrate_imu_label, "Calibrate IMU On Start");
-  calibrate_imu_sw = lv_sw_create(settingsTab, NULL);
-	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_BG, &pos_bg_style);
-	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_INDIC, &pos_indic_style);
-	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_KNOB_ON, &pos_knob_on_style);
-	lv_sw_set_style(calibrate_imu_sw, LV_SW_STYLE_KNOB_OFF, &pos_knob_off_style);
-	lv_obj_align(calibrate_imu_sw, calibrate_imu_label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
-	lv_sw_set_action(calibrate_imu_sw, calibrate_imu_sw_action);
-  if(settings.calibrateImuOnStart)
-    lv_sw_on(calibrate_imu_sw);
+  lv_obj_t *enable_imu_label = lv_label_create(settingsTab, NULL);
+  lv_obj_align(enable_imu_label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  lv_label_set_text(enable_imu_label, "Enable IMU");
+  enable_imu_sw = lv_sw_create(settingsTab, NULL);
+	lv_sw_set_style(enable_imu_sw, LV_SW_STYLE_BG, &pos_bg_style);
+	lv_sw_set_style(enable_imu_sw, LV_SW_STYLE_INDIC, &pos_indic_style);
+	lv_sw_set_style(enable_imu_sw, LV_SW_STYLE_KNOB_ON, &pos_knob_on_style);
+	lv_sw_set_style(enable_imu_sw, LV_SW_STYLE_KNOB_OFF, &pos_knob_off_style);
+	lv_obj_align(enable_imu_sw, enable_imu_label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
+	lv_sw_set_action(enable_imu_sw, enable_imu_sw_action);
+  if(settings.enableImu)
+    lv_sw_on(enable_imu_sw);
   else
-    lv_sw_off(calibrate_imu_sw);
+    lv_sw_off(enable_imu_sw);
 
   lv_obj_t *enable_vision_tracking_label = lv_label_create(settingsTab, NULL);
-  lv_obj_align(enable_vision_tracking_label, calibrate_imu_sw, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
+  lv_obj_align(enable_vision_tracking_label, enable_imu_sw, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 0);
   lv_label_set_text(enable_vision_tracking_label, "Enable Vision Tracking");
   enable_vision_tracking_sw = lv_sw_create(settingsTab, NULL);
 	lv_sw_set_style(enable_vision_tracking_sw, LV_SW_STYLE_BG, &pos_bg_style);
@@ -234,24 +224,20 @@ void gui_main()
   else
     lv_sw_off(enable_vision_tracking_sw);
 
-  /*
-  lv_obj_t *pidTab = lv_tabview_add_tab(tabview, "PID");
-
-  lv_obj_t *drive_label = lv_label_create(pidTab, NULL);
-  lv_obj_align(drive_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 0);
-  lv_label_set_text(drive_label, "Drive Gains");
-  drive_p_slider = lv_slider_create(pidTab, NULL);
-  lv_obj_set_width(drive_p_slider, 130);
-  lv_obj_align(drive_p_slider, drive_label, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
-  lv_obj_set_free_num(drive_p_slider, 0);
-  drive_i_slider = lv_slider_create(pidTab, NULL);
-  lv_obj_set_width(drive_i_slider, 130);
-  lv_obj_align(drive_i_slider, drive_p_slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
-  lv_obj_set_free_num(drive_i_slider, 1);
-  drive_d_slider = lv_slider_create(pidTab, NULL);
-  lv_obj_set_width(drive_d_slider, 130);
-  lv_obj_align(drive_d_slider, drive_i_slider, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
-  lv_obj_set_free_num(drive_d_slider, 2);*/
+  lv_obj_t *enable_blackbox_label = lv_label_create(settingsTab, NULL);
+  lv_obj_align(enable_blackbox_label, NULL, LV_ALIGN_IN_TOP_MID, 0, 20);
+  lv_label_set_text(enable_blackbox_label, "Enable Autonomous Blackbox");
+  enable_blackbox_sw = lv_sw_create(settingsTab, NULL);
+	lv_sw_set_style(enable_blackbox_sw, LV_SW_STYLE_BG, &pos_bg_style);
+	lv_sw_set_style(enable_blackbox_sw, LV_SW_STYLE_INDIC, &pos_indic_style);
+	lv_sw_set_style(enable_blackbox_sw, LV_SW_STYLE_KNOB_ON, &pos_knob_on_style);
+	lv_sw_set_style(enable_blackbox_sw, LV_SW_STYLE_KNOB_OFF, &pos_knob_off_style);
+	lv_obj_align(enable_blackbox_sw, enable_blackbox_label, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 10);
+	lv_sw_set_action(enable_blackbox_sw, enable_blackbox_sw_action);
+  if(settings.enableBlackbox)
+    lv_sw_on(enable_blackbox_sw);
+  else
+    lv_sw_off(enable_blackbox_sw);
 }
 
 
@@ -332,10 +318,10 @@ static lv_res_t reset_button_action(lv_obj_t *o)
   lv_label_set_text(translational_expo_label, (std::string("Translational Expo.: ") + std::to_string(static_cast<int>(settings.translationalExpo*100)) + "%").c_str());
   lv_label_set_text(rotational_dr_label, (std::string("Rotational D/R: ") + std::to_string(static_cast<int>(settings.rotationalDR*100)) + "%").c_str());
   lv_label_set_text(rotational_expo_label, (std::string("Rotational Expo.: ") + std::to_string(static_cast<int>(settings.rotationalExpo*100)) + "%").c_str());
-  if(settings.calibrateImuOnStart)
-    lv_sw_on(calibrate_imu_sw);
+  if(settings.enableImu)
+    lv_sw_on(enable_imu_sw);
   else
-    lv_sw_off(calibrate_imu_sw);
+    lv_sw_off(enable_imu_sw);
   if(settings.enableVisionTracking)
     lv_sw_on(enable_vision_tracking_sw);
   else
@@ -344,14 +330,15 @@ static lv_res_t reset_button_action(lv_obj_t *o)
   return LV_RES_OK;
 }
 
-static lv_res_t calibrate_imu_sw_action(lv_obj_t *o)
+static lv_res_t enable_imu_sw_action(lv_obj_t *o)
 {
-  settings.calibrateImuOnStart = !settings.calibrateImuOnStart;
+  settings.enableImu = !settings.enableImu;
   settings.save();
-  if(settings.calibrateImuOnStart)
+  if(settings.enableImu)
     lv_sw_on(o);
   else
     lv_sw_off(o);
+  return LV_RES_OK;
 }
 
 static lv_res_t enable_vision_tracking_sw_action(lv_obj_t *o)
@@ -362,6 +349,18 @@ static lv_res_t enable_vision_tracking_sw_action(lv_obj_t *o)
     lv_sw_on(o);
   else
     lv_sw_off(o);
+  return LV_RES_OK;
+}
+
+static lv_res_t enable_blackbox_sw_action(lv_obj_t *o)
+{
+  settings.enableBlackbox = !settings.enableBlackbox;
+  settings.save();
+  if(settings.enableBlackbox)
+    lv_sw_on(o);
+  else
+    lv_sw_off(o);
+  return LV_RES_OK;
 }
 
 static lv_res_t gui_mbox_destroy(lv_obj_t *obj, const char *c)

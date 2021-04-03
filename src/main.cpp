@@ -11,12 +11,13 @@ MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor:
 
 // Sensor Objects
 Controller Cont(ControllerId::master);
-IMU Imu(4);
+IMU Imu(4); // TODO: is pros::IMU better?
 std::shared_ptr<Vision<10>> Camera;
 pros::ADILineSensor LowerLightSensor('G');
 pros::ADILineSensor UpperLightSensor('H');
 
-// Mutexes
+// Tasks / Mutexes
+std::shared_ptr<pros::Task> DriveCtl, IntakeCtl, VisionTracking, OdomUpdater;
 CrossplatformMutex DriveMtx, IntakeMtx;
 
 // Facilities Control Objects
@@ -41,6 +42,7 @@ template <typename T> int sgn(T val)
 void driveCtlCb(void *);
 void intakeCtlCb(void *);
 void visionTrackingCb(void *);
+void odomUpdaterCb(void *);
 float drexpo(float, double, double);
 
 // Function Implementations
@@ -80,7 +82,7 @@ void initialize()
 	std::cout << "done" << std::endl;
 
 
-	if(settings.calibrateImuOnStart)
+	if(settings.enableImu)
 	{
 		std::cout << "Calibrating IMU... ";
 		Imu.calibrate();
@@ -93,15 +95,6 @@ void initialize()
 	std::cout << "Creating Chassis Control Objects... ";
 
 	Logger::setDefaultLogger(std::make_shared<Logger>(TimeUtilFactory::createDefault().getTimer(), "/ser/sout", Logger::LogLevel::debug));
-
-	// PID-less Chassis
-	/*Chassis = ChassisControllerBuilder()
-		.withMotors(1, -10, -20, 11)
-		.withDimensions(AbstractMotor::gearset::green, {{4_in, 13_in}, imev5GreenTPR})
-		.withSensors(LeftQuad, RightQuad, MiddleQuad)
-		.withMaxVelocity(50)
-		.withOdometry({{2.75_in, 11.1_in, 4.3_in, 2.75_in}, quadEncoderTPR}, StateMode::CARTESIAN)
-		.buildOdometry();*/
 
 	// PID Chassis
 	Chassis = ChassisControllerBuilder()
@@ -137,6 +130,17 @@ void initialize()
 	std::cout << "done" << std::endl;
 
 
+	std::cout << "Creating opcontrol Tasks... ";
+	DriveCtl = std::make_shared<pros::Task>(driveCtlCb);
+	IntakeCtl = std::make_shared<pros::Task>(intakeCtlCb);
+	VisionTracking = std::make_shared<pros::Task>(visionTrackingCb);
+	OdomUpdater = std::make_shared<pros::Task>(odomUpdaterCb);
+	DriveCtl->suspend();
+	IntakeCtl->suspend();
+	VisionTracking->suspend();
+	std::cout << "done" << std::endl;
+
+
 	gui_loading_stop();
 	gui_main();
 
@@ -146,10 +150,22 @@ void initialize()
 void disabled()
 {
 	std::cout << "Robot disabled" << std::endl;
+
+	// Stop all motors
 	Drive->stop();
+	Scoring->stop();
+
+	// Suspend all opcontrol tasks
+	DriveCtl->suspend();
+	IntakeCtl->suspend();
+	VisionTracking->suspend();
+
+	// Unlock any locked mutexes
+	DriveMtx.unlock();
+	IntakeMtx.unlock();
 }
 
-void competition_initialize() {} // TODO: should we make a seperate init for comps?
+void competition_initialize() {}
 
 void autonomous()
 {
@@ -157,7 +173,10 @@ void autonomous()
 	std::cout.flush();
 	DriveMtx.lock();
 	IntakeMtx.lock();
-	AutonBase::getAllObjs()[autonNum]->exec(position);
+	if(settings.enableBlackbox)
+		AutonBase::getAllObjs()[autonNum]->execWithBlackbox(position);
+	else
+		AutonBase::getAllObjs()[autonNum]->exec(position);
 	DriveMtx.unlock();
 	IntakeMtx.unlock();
 	std::cout << "done" << std::endl;
@@ -166,13 +185,13 @@ void autonomous()
 void opcontrol()
 {
 	std::cout << "Entering operator control mode" << std::endl;
-	pros::Task DriveCtl(&driveCtlCb, NULL);
-	pros::Task IntakeCtl(&intakeCtlCb, NULL);
+	DriveCtl->resume();
+	IntakeCtl->resume();
 	if(settings.enableVisionTracking)
-		pros::Task VisionTracking(&visionTrackingCb, NULL);
+		VisionTracking->resume();
 }
 
-// Tasks
+// Task Callbacks
 void driveCtlCb(void *params)
 {
 	Rate r;
@@ -186,15 +205,11 @@ void driveCtlCb(void *params)
       drexpo(Cont.getAnalog(ControllerAnalog::rightX), settings.rotationalDR, settings.rotationalExpo));
 		DriveMtx.unlock();
 
-		auto state = Chassis->getState();
-		//state.theta = Imu.get() * degree;
-		//Chassis->setState(state);
-		Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
-
 		if(Cont.getDigital(ControllerDigital::B))
 		{
 			Chassis->setState(OdomState{0_in, 0_in, 0_deg});
-			//Imu.reset();
+			if(settings.enableImu)
+				Imu.reset();
 		}
 		else if(Cont.getDigital(ControllerDigital::X))
 			Chassis->setState(OdomState{-3*t + 12_in, -54.5_in, 26_deg});
@@ -292,8 +307,33 @@ void visionTrackingCb(void *params)
 	}
 }
 
-// Other
-float drexpo(float input, double rgain, double egain) // just a quick expo equation for the joystick controls
+void odomUpdaterCb(void *params)
 {
-  return sgn(input)*rgain*pow(abs(input), 1+egain); // see Desmos for a pretty graph of this
+	Rate r;
+	if(settings.enableImu)
+	{
+		while(true)
+		{
+			auto state = Chassis->getState();
+			state.theta = Imu.get() * degree;
+			Chassis->setState(state);
+			Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
+			r.delay(100_Hz); // TODO: is it okay to update this fast?
+		}
+	}
+	else
+	{
+		while(true)
+		{
+			auto state = Chassis->getState();
+			Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
+			r.delay(10_Hz);
+		}
+	}
+}
+
+// Other
+float drexpo(float input, double rgain, double egain) // Direct Rate / Expo function for joystick dampening
+{
+  return sgn(input)*rgain*pow(abs(input), 1+egain); // https://www.desmos.com/calculator/muxvne64c3
 }

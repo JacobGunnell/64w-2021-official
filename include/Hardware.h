@@ -20,7 +20,8 @@ extern IMU Imu;
 extern std::shared_ptr<Vision<10>> Camera;
 extern pros::ADILineSensor LowerLightSensor, UpperLightSensor;
 
-// Mutexes
+// Tasks / Mutexes
+extern std::shared_ptr<pros::Task> DriveCtl, IntakeCtl, VisionTracking, OdomUpdater;
 extern CrossplatformMutex DriveMtx, IntakeMtx;
 
 // Other objects

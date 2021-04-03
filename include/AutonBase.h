@@ -25,12 +25,16 @@ public:
   virtual std::string getDescription() const { return ""; }
   virtual void init() {}
   virtual void exec(Position) = 0;
+  void execWithBlackbox(Position);
 
   std::string getListing() const { return getName() + ": " + std::to_string(getPoints()); } // get listing as shown in a dropdown list
 
   static std::vector<std::unique_ptr<AutonBase>> getAllObjs();
   static std::string getAllListings();
   static void initAll();
+
+private:
+  static void blackboxLoggerCb();
 };
 
 #endif // AUTONBASE_H
