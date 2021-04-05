@@ -51,7 +51,7 @@ void Robot::fetchBall(QTime timeout, double power)
   Point startingPoint = {Chassis->getState().x, Chassis->getState().y};
 
   Scoring->grab();
-  while(timer.millis() < start + timeout && !Scoring->hasBall())
+  while(timer.millis() < start + timeout && !Scoring->lowerSensorDetect())
   {
     Drive->forward(power);
     r.delay(10_Hz);

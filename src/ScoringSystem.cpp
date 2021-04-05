@@ -6,7 +6,7 @@ void ScoringSystem::deploy()
 {
   BottomRollers.moveVoltage(rollerSpeed);
   TopRollers.moveVoltage(rollerSpeed);
-  pros::delay(500); // TODO: use imu to sense when robot has successfully deployed?
+  pros::delay(500);
   stop();
 }
 
@@ -51,6 +51,13 @@ void ScoringSystem::eject()
   Intakes.moveVoltage(0);
 }
 
+void ScoringSystem::topOnly()
+{
+  BottomRollers.moveVoltage(0);
+  TopRollers.moveVoltage(12000);
+  Intakes.moveVoltage(0);
+}
+
 void ScoringSystem::stop()
 {
   BottomRollers.moveVoltage(0);
@@ -60,16 +67,17 @@ void ScoringSystem::stop()
 
 // Smart Definitions
 
-void ScoringSystem::grabSensor(QTime timeout)
+void ScoringSystem::grabSensor(QTime timeout, QTime extra)
 {
   Rate r;
   Timer timer;
-  QTime stopTime = timer.millis() + timeout;
-  while(!hasBall() && timer.millis() < stopTime)
+  QTime stopTime = timer.millis() + timeout - extra;
+  while(!lowerSensorDetect() && timer.millis() < stopTime)
   {
     grab();
     r.delay(10_Hz);
   }
+  pros::delay(extra.convert(millisecond));
   stop();
 }
 
@@ -78,7 +86,7 @@ void ScoringSystem::scoreSensor(QTime timeout, QTime extra)
   Rate r;
   Timer timer;
   QTime stopTime = timer.millis() + timeout - extra;
-  while(hasBall() && timer.millis() < stopTime)
+  while(!upperSensorDetect() && timer.millis() < stopTime)
   {
     score();
     r.delay(10_Hz);

@@ -11,7 +11,7 @@ MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor:
 
 // Sensor Objects
 Controller Cont(ControllerId::master);
-IMU Imu(4); // TODO: is pros::IMU better?
+pros::Imu Imu(4);
 std::shared_ptr<Vision<10>> Camera;
 pros::ADILineSensor LowerLightSensor('G');
 pros::ADILineSensor UpperLightSensor('H');
@@ -85,8 +85,8 @@ void initialize()
 	if(settings.enableImu)
 	{
 		std::cout << "Calibrating IMU... ";
-		Imu.calibrate();
-		while(Imu.isCalibrating())
+		Imu.reset();
+		while(Imu.is_calibrating())
 			pros::delay(10);
 		std::cout << "done" << std::endl;
 	}
@@ -94,22 +94,31 @@ void initialize()
 
 	std::cout << "Creating Chassis Control Objects... ";
 
-	Logger::setDefaultLogger(std::make_shared<Logger>(TimeUtilFactory::createDefault().getTimer(), "/ser/sout", Logger::LogLevel::debug));
+	Logger::setDefaultLogger(std::make_shared<Logger>(TimeUtilFactory::createDefault().getTimer(), "/ser/sout", Logger::LogLevel::info));
 
 	// PID Chassis
 	Chassis = ChassisControllerBuilder()
 		.withMotors(1, -10, -20, 11)
 		.withGains(
-			{.002, .0001, .00005}, // distance controller pid gains
+			{.003, .0001, .00005}, // distance controller pid gains
 			{.008, 0, .0001}, // turn controller pid gains
-			{.004, 0, 0} // angle controller pid gains
+			{.004, 0, .00005} // angle controller pid gains
 		)
 		.withDerivativeFilters(std::make_unique<AverageFilter<3>>())
 		.withSensors(LeftQuad, RightQuad, MiddleQuad)
-		.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 11.25_in, 3.84_in, 2.75_in}, quadEncoderTPR})
+		.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 11.125_in, 3.84_in, 2.75_in}, quadEncoderTPR})
 		.withMaxVelocity(100)
 		.withOdometry(StateMode::CARTESIAN)
 		.buildOdometry();
+
+	ProfileController = AsyncMotionProfileControllerBuilder()
+		.withLimits({
+	      1.0, // Maximum linear velocity of the Chassis in m/s
+	      2.0, // Maximum linear acceleration of the Chassis in m/s/s
+	      10.0 // Maximum linear jerk of the Chassis in m/s/s/s
+	    })
+		.withOutput(Chassis)
+		.buildMotionProfileController();
 
 	Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
 
@@ -209,10 +218,14 @@ void driveCtlCb(void *params)
 		{
 			Chassis->setState(OdomState{0_in, 0_in, 0_deg});
 			if(settings.enableImu)
-				Imu.reset();
+				Imu.set_heading(0);
 		}
 		else if(Cont.getDigital(ControllerDigital::X))
+		{
 			Chassis->setState(OdomState{-3*t + 12_in, -54.5_in, 26_deg});
+			if(settings.enableImu)
+				Imu.set_heading(26);
+		}
 
 		if(Cont.getDigital(ControllerDigital::Y))
 			Chassis->turnToAngle(90_deg);
@@ -315,7 +328,7 @@ void odomUpdaterCb(void *params)
 		while(true)
 		{
 			auto state = Chassis->getState();
-			state.theta = Imu.get() * degree;
+			state.theta = Imu.get_rotation() * degree;
 			Chassis->setState(state);
 			Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
 			r.delay(100_Hz); // TODO: is it okay to update this fast?

@@ -1,7 +1,10 @@
 import matplotlib.pyplot as plt
+import matplotlib.ticker as plticker
 import sys
 from numpy import sqrt
 
+
+t = 23.75
 
 ## Plots layout
 fig = plt.figure()
@@ -13,6 +16,12 @@ map_ax.set_title('Odometry State (in)')
 map_ax.set_aspect('equal')
 map_ax.set_xlabel('X')
 map_ax.set_ylabel('Y')
+loc = plticker.MultipleLocator(base=t) ## 1 tile = 1 gridline
+map_ax.xaxis.set_major_locator(loc)
+map_ax.set_xlim(-3*t, 3*t)
+map_ax.yaxis.set_major_locator(loc)
+map_ax.set_ylim(-3*t, 3*t)
+map_ax.grid()
 
 uls_ax = fig.add_subplot(gs[0,0])
 uls_ax.set_title('Upper Light Sensor')

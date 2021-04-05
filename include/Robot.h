@@ -39,8 +39,6 @@ private:
   std::shared_ptr<ScoringSystem> Scoring;
   std::shared_ptr<Vision<10>> Camera;
 
-  //std::shared_ptr<OdomChassisController> StrafeChassis; // janky workaround to make okapilib do closed-loop strafes (TODO)
-
   std::vector<double> r_x;
   std::vector<double> r_y;
   std::vector<double> r_theta;
