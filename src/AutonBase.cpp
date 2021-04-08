@@ -16,6 +16,7 @@ std::vector<std::unique_ptr<AutonBase>> AutonBase::getAllObjs()
 {
   std::vector<std::unique_ptr<AutonBase>> objs;
   // (Auton.h > ) ...and add one of these
+  objs.push_back(std::make_unique<Illuminati>());
   objs.push_back(std::make_unique<Skills14789>());
   objs.push_back(std::make_unique<Skills147>());
   objs.push_back(std::make_unique<Skills159>());

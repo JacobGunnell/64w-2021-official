@@ -58,6 +58,27 @@ void ScoringSystem::topOnly()
   Intakes.moveVoltage(0);
 }
 
+void ScoringSystem::topOnlyReverse()
+{
+  BottomRollers.moveVoltage(0);
+  TopRollers.moveVoltage(-12000);
+  Intakes.moveVoltage(0);
+}
+
+void ScoringSystem::intakesOnly()
+{
+  BottomRollers.moveVoltage(0);
+  TopRollers.moveVoltage(0);
+  Intakes.moveVoltage(12000);
+}
+
+void ScoringSystem::intakesOnlyReverse()
+{
+  BottomRollers.moveVoltage(0);
+  TopRollers.moveVoltage(0);
+  Intakes.moveVoltage(-12000);
+}
+
 void ScoringSystem::stop()
 {
   BottomRollers.moveVoltage(0);

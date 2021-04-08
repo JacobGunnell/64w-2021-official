@@ -26,6 +26,7 @@ public:
   void driveTime(QTime, double);
   void alignGoal(QTime, double);
   void fetchBall(QTime, double);
+  void grabAt(Point);
   void strafeToPoint(Point);
 
   void logBlackboxFrame();

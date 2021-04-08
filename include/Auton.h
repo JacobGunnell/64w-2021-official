@@ -7,3 +7,4 @@
 #include "auton/Skills159.h"
 #include "auton/Skills147.h"
 #include "auton/Skills14789.h"
+#include "auton/Illuminati.h"

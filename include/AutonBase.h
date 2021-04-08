@@ -7,7 +7,14 @@
 #include <vector>
 #include <memory>
 
-constexpr QLength t = 23.75_in; // tile size; TODO: do this more elegantly with an operator""
+constexpr QLength t = 23.75_in;
+
+// Some nifty macros to abbreviate skills routines
+#define DTP Chassis->driveToPoint
+#define TTP Chassis->turnToPoint
+#define S Scoring->score(1_s)
+#define AG Gary->alignGoal(1.5_s, .5)
+#define GA Gary->grabAt
 
 struct Position
 {

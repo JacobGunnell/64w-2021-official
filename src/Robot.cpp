@@ -28,9 +28,10 @@ void Robot::alignGoal(QTime timeout, double power)
   Rate r;
   QTime start = timer.millis();
 
-  double strafeGain = .04;
+  double strafeGain = .05;
+  QFrequency f = 10_Hz;
 
-  while(timer.millis() < start + timeout)
+  while(timer.millis() < start + timeout) // TODO: add bumper sensor
   {
     Camera->update();
     auto target = Camera->largest(GOAL);
@@ -38,7 +39,7 @@ void Robot::alignGoal(QTime timeout, double power)
       Drive->xArcade(strafeGain*target->x.getOutput(), power, 0);
     else
       Drive->xArcade(0, power, 0);
-    r.delay(10_Hz);
+    r.delay(f);
   }
   Drive->stop();
 }
@@ -57,6 +58,14 @@ void Robot::fetchBall(QTime timeout, double power)
     r.delay(10_Hz);
   }
   Chassis->driveToPoint(startingPoint, true);
+  Scoring->stop();
+}
+
+void Robot::grabAt(Point p) // TODO: vision alignment?
+{
+  Chassis->turnToPoint(p);
+  Scoring->grab();
+  Chassis->driveToPoint(p);
   Scoring->stop();
 }
 

@@ -127,7 +127,7 @@ void initialize()
 	pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 	pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
 	pros::vision_signature_s_t GOAL = pros::Vision::signature_from_utility (3, -3093, -1459, -2276, -4603, -2491, -3547, 2.000, 0);
-	Camera = std::make_shared<Vision<10>>(19, 150, RED_BALL, BLUE_BALL, GOAL, 30, .26);
+	Camera = std::make_shared<Vision<10>>(19, 150, RED_BALL, BLUE_BALL, GOAL, 0);
 
 	Gary = std::make_shared<Robot>(Chassis, ProfileController, Scoring, Camera);
 
@@ -216,13 +216,13 @@ void driveCtlCb(void *params)
 
 		if(Cont.getDigital(ControllerDigital::B))
 		{
-			Chassis->setState(OdomState{0_in, 0_in, 0_deg});
+			Chassis->setState({0_in, 0_in, 0_deg});
 			if(settings.enableImu)
 				Imu.set_heading(0);
 		}
 		else if(Cont.getDigital(ControllerDigital::X))
 		{
-			Chassis->setState(OdomState{-3*t + 12_in, -54.5_in, 26_deg});
+			Chassis->setState({-55.25_in, -53.75_in, 26_deg});
 			if(settings.enableImu)
 				Imu.set_heading(26);
 		}
@@ -261,17 +261,11 @@ void intakeCtlCb(void *params)
 			Scoring->grab();
 
 		else if(Cont.getDigital(ControllerDigital::right)) // Intakes Only Reverse
-		{
-			BottomRollers.moveVoltage(0);
-			TopRollers.moveVoltage(0);
-			Intakes.moveVoltage(-12000);
-		}
+			Scoring->intakesOnlyReverse();
+
 		else if(Cont.getDigital(ControllerDigital::left)) // Top Only Reverse
-		{
-			BottomRollers.moveVoltage(0);
-			TopRollers.moveVoltage(-12000);
-			Intakes.moveVoltage(0);
-		}
+			Scoring->topOnlyReverse();
+
 		else
 			Scoring->stop();
 

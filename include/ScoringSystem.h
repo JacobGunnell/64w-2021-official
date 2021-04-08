@@ -23,6 +23,9 @@ public:
   void score();
   void eject();
   void topOnly();
+  void topOnlyReverse();
+  void intakesOnly();
+  void intakesOnlyReverse();
   void stop();
 
   void cycle(QTime t) { cycle(); pros::delay(t.convert(millisecond)); stop(); }
@@ -32,6 +35,9 @@ public:
   void score(QTime t) { score(); pros::delay(t.convert(millisecond)); stop(); }
   void eject(QTime t) { eject(); pros::delay(t.convert(millisecond)); stop(); }
   void topOnly(QTime t) { topOnly(); pros::delay(t.convert(millisecond)); stop(); }
+  void topOnlyReverse(QTime t) { topOnlyReverse(); pros::delay(t.convert(millisecond)); stop(); }
+  void intakesOnly(QTime t) { intakesOnly(); pros::delay(t.convert(millisecond)); stop(); }
+  void intakesOnlyReverse(QTime t) { intakesOnlyReverse(); pros::delay(t.convert(millisecond)); stop(); }
 
   bool lowerSensorDetect() { return LowerLightSensor.get_value_calibrated() < lowerLightSensorThreshold; }
   bool upperSensorDetect() { return UpperLightSensor.get_value_calibrated() < upperLightSensorThreshold; }
