@@ -24,10 +24,13 @@ public:
   std::shared_ptr<Vision<10>> getCamera() const { return Camera; }
 
   void driveTime(QTime, double);
-  void alignGoal(QTime, double);
+  void alignGoal(Point, QAngle, QTime, double, bool = false);
+  void alignGoalCamera(QTime, double);
+  void backOut(Point);
   void fetchBall(QTime, double);
   void grabAt(Point);
-  void strafeToPoint(Point);
+  void grabAtSensor(Point, int, QTime = 250_ms);
+  void translateToPoint(Point, QAngle);
 
   void logBlackboxFrame();
   bool saveBlackbox(std::string = "/usd/blackbox.csv");

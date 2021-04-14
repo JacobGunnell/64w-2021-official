@@ -25,7 +25,7 @@ public:
 
     // Score in goal 4
     Chassis->turnToPoint({-3*t, 0_in});
-    Gary->alignGoal(1.5_s, .5);
+    Gary->alignGoalCamera(1.5_s, .5);
     Scoring->score(1_s);
     Chassis->driveToPoint({-1.6*t, 0_in}, true);
 
@@ -36,7 +36,7 @@ public:
 
     // Score in goal 7
     Chassis->turnToPoint({-3*t, 3*t});
-    Gary->alignGoal(1.5_s, .5);
+    Gary->alignGoalCamera(1.5_s, .5);
     Chassis->turnToPoint({-3*t, 3*t});
     Scoring->score(1_s);
     Chassis->driveToPoint({-2*t, 2*t}, true);
@@ -55,7 +55,7 @@ public:
     Chassis->turnToPoint({0_in, 3*t});
 
     // Score in goal 8
-    Gary->alignGoal(1.5_s, .5);
+    Gary->alignGoalCamera(1.5_s, .5);
     Scoring->score(1_s);
     //auto goal = Camera->largest(GOAL);
     //if(goal != NULL && abs(goal->x.getOutput()) < .1*VISION_FOV_WIDTH) // TODO
@@ -72,7 +72,7 @@ public:
 
     // Score in goal 9
     Chassis->turnToPoint({3*t, 3*t});
-    Gary->alignGoal(1.5_s, .5);
+    Gary->alignGoalCamera(1.5_s, .5);
     Chassis->turnToPoint({3*t, 3*t});
     Scoring->score(1_s);
     Chassis->driveToPoint({1.5*t, 1.5*t}, true);

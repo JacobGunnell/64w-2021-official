@@ -97,11 +97,11 @@ void initialize()
 	Logger::setDefaultLogger(std::make_shared<Logger>(TimeUtilFactory::createDefault().getTimer(), "/ser/sout", Logger::LogLevel::info));
 
 	// PID Chassis
-	Chassis = ChassisControllerBuilder()
+	Chassis = ChassisControllerBuilder() // TODO: try changing settling behavior?
 		.withMotors(1, -10, -20, 11)
 		.withGains(
 			{.003, .0001, .00005}, // distance controller pid gains
-			{.008, 0, .0001}, // turn controller pid gains
+			{.005, .003, 0}, // turn controller pid gains
 			{.004, 0, .00005} // angle controller pid gains
 		)
 		.withDerivativeFilters(std::make_unique<AverageFilter<3>>())
@@ -216,19 +216,12 @@ void driveCtlCb(void *params)
 
 		if(Cont.getDigital(ControllerDigital::B))
 		{
-			Chassis->setState({0_in, 0_in, 0_deg});
-			if(settings.enableImu)
-				Imu.set_heading(0);
+			START(0_in, 0_in, 0_deg);
 		}
-		else if(Cont.getDigital(ControllerDigital::X))
+		else if(Cont.getDigital(ControllerDigital::Y))
 		{
-			Chassis->setState({-55.25_in, -53.75_in, 26_deg});
-			if(settings.enableImu)
-				Imu.set_heading(26);
+			START(-2*t - 10.92_in, -2*t - 7.185_in, 25_deg);
 		}
-
-		if(Cont.getDigital(ControllerDigital::Y))
-			Chassis->turnToAngle(90_deg);
 
     r.delay(50_Hz);
 	}
@@ -254,9 +247,6 @@ void intakeCtlCb(void *params)
 		else if(Cont.getDigital(ControllerDigital::up)) // Score
 			Scoring->score();
 
-		else if(Cont.getDigital(ControllerDigital::down)) // Eject
-			Scoring->eject();
-
 		else if(Cont.getDigital(ControllerDigital::L1)) // Grab
 			Scoring->grab();
 
@@ -265,6 +255,9 @@ void intakeCtlCb(void *params)
 
 		else if(Cont.getDigital(ControllerDigital::left)) // Top Only Reverse
 			Scoring->topOnlyReverse();
+
+		else if(Cont.getDigital(ControllerDigital::down)) // Autoscore (experimental)
+			Scoring->scoreSensor();
 
 		else
 			Scoring->stop();
@@ -322,10 +315,10 @@ void odomUpdaterCb(void *params)
 		while(true)
 		{
 			auto state = Chassis->getState();
-			state.theta = Imu.get_rotation() * degree;
+			state.theta = Imu.get_rotation() * 1.008 * degree; // IMU underestimates rotation by about .8%
 			Chassis->setState(state);
 			Cont.setText(2, 0, std::to_string(state.x.convert(inch)).substr(0,6) + " " + std::to_string(state.y.convert(inch)).substr(0,6) + " " + std::to_string(state.theta.convert(degree)).substr(0,6));
-			r.delay(100_Hz); // TODO: is it okay to update this fast?
+			r.delay(100_Hz);
 		}
 	}
 	else

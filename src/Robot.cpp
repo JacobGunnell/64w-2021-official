@@ -22,16 +22,41 @@ void Robot::driveTime(QTime t, double power)
   Drive->stop();
 }
 
-void Robot::alignGoal(QTime timeout, double power)
+void Robot::alignGoal(Point point, QAngle targetAngle, QTime timeout, double power, bool spinIntakes)
 {
   Timer timer;
   Rate r;
+
+  double strafeGain = .06;
+  double turnGain = .001;
+
+  Chassis->turnToAngle(targetAngle);
+  if(spinIntakes)
+    Scoring->intakesOnly();
+
   QTime start = timer.millis();
+  while(timer.millis() < start + timeout)
+  {
+    auto [length, angle] = OdomMath::computeDistanceAndAngleToPoint(
+    point.inFT(StateMode::CARTESIAN), Chassis->getOdometry()->getState(StateMode::FRAME_TRANSFORMATION));
 
-  double strafeGain = .05;
-  QFrequency f = 10_Hz;
+    angle = OdomMath::constrainAngle180(angle);
 
-  while(timer.millis() < start + timeout) // TODO: add bumper sensor
+    Drive->xArcade(strafeGain * length.convert(inch) * sin(angle).getValue(), power, turnGain * (targetAngle - Chassis->getState().theta).convert(degree));
+    r.delay(10_Hz);
+  }
+  Drive->stop();
+  Scoring->stop();
+}
+
+void Robot::alignGoalCamera(QTime timeout, double power)
+{
+  Timer timer;
+  Rate r;
+  double strafeGain = .04;
+
+  QTime start = timer.millis();
+  while(timer.millis() < start + timeout)
   {
     Camera->update();
     auto target = Camera->largest(GOAL);
@@ -39,9 +64,16 @@ void Robot::alignGoal(QTime timeout, double power)
       Drive->xArcade(strafeGain*target->x.getOutput(), power, 0);
     else
       Drive->xArcade(0, power, 0);
-    r.delay(f);
+    r.delay(10_Hz);
   }
   Drive->stop();
+}
+
+void Robot::backOut(Point p)
+{
+  Scoring->flush();
+  Chassis->driveToPoint(p, true);
+  Scoring->stop();
 }
 
 void Robot::fetchBall(QTime timeout, double power)
@@ -61,7 +93,7 @@ void Robot::fetchBall(QTime timeout, double power)
   Scoring->stop();
 }
 
-void Robot::grabAt(Point p) // TODO: vision alignment?
+void Robot::grabAt(Point p)
 {
   Chassis->turnToPoint(p);
   Scoring->grab();
@@ -69,9 +101,42 @@ void Robot::grabAt(Point p) // TODO: vision alignment?
   Scoring->stop();
 }
 
-void Robot::strafeToPoint(Point target)
+void Robot::grabAtSensor(Point p, int numBalls, QTime extra)
+{
+  int targetBalls = Scoring->getBallsInCarriage() + numBalls;
+  Chassis->turnToPoint(p);
+  Scoring->grab();
+  auto dist = OdomMath::computeDistanceToPoint(p, Chassis->getState());
+  Chassis->moveDistanceAsync(dist);
+  while(Scoring->getBallsInCarriage() < targetBalls && !Chassis->isSettled())
+    pros::delay(50);
+  pros::delay(extra.convert(millisecond));
+  Scoring->stop();
+  Chassis->waitUntilSettled();
+}
+
+void Robot::translateToPoint(Point targetPoint, QAngle targetAngle)
 {
   // TODO
+  /*
+  Rate r;
+
+  double transGain = .06;
+  double turnGain = .001;
+
+  while(timer.millis() < start + timeout)
+  {
+    auto [length, angle] = OdomMath::computeDistanceAndAngleToPoint(
+    point.inFT(StateMode::CARTESIAN), Chassis->getOdometry()->getState(StateMode::FRAME_TRANSFORMATION));
+
+    angle = OdomMath::constrainAngle180(angle);
+
+    Drive->xArcade(strafeGain * length.convert(inch) * sin(angle).getValue(), power, turnGain * (targetAngle - Chassis->getState().theta).convert(degree));
+    r.delay(10_Hz);
+  }
+  Drive->stop();
+  Scoring->stop();
+  */
 }
 
 void Robot::logBlackboxFrame()

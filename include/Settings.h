@@ -9,7 +9,7 @@ struct Settings
   double translationalExpo = .2;
   double rotationalDR = 1.0;
   double rotationalExpo = .15;
-  bool enableImu = false;
+  bool enableImu = true;
   bool enableVisionTracking = false;
   bool enableBlackbox = false;
 

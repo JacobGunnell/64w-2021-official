@@ -10,11 +10,13 @@
 constexpr QLength t = 23.75_in;
 
 // Some nifty macros to abbreviate skills routines
-#define DTP Chassis->driveToPoint
-#define TTP Chassis->turnToPoint
-#define S Scoring->score(1_s)
-#define AG Gary->alignGoal(1.5_s, .5)
-#define GA Gary->grabAt
+#define START(x,y,h) Chassis->setState({x,y,h}); Imu.set_rotation(h.convert(degree)) // Set starting position
+#define DTP(x,y) Chassis->driveToPoint({x,y}) // Drive To Point
+#define DTPR(x,y) Chassis->driveToPoint({x,y}, true) // Drive To Point Reverse
+#define TTP(x,y) Chassis->turnToPoint({x,y}) // Turn To Point
+#define S(t) Scoring->score(t) // Score
+#define AG(t, s) Gary->alignGoal(t, s) // Align Goal
+#define GA(x,y) Gary->grabAt({x,y}) // Grab At
 
 struct Position
 {

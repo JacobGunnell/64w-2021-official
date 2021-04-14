@@ -7,8 +7,8 @@ template<std::size_t n> Vision<n>::Vision(int port, int exposure, pros::vision_s
   set_signature(BLUE_BALL, &bluesig);
   set_signature(GOAL, &goalsig);
   set_zero_point(pros::vision_zero_e_t::E_VISION_ZERO_CENTER);
-  minArea = 60; // TODO: redo these for goals in new camera orientation
-  maxArea = 220; // very lenient values (this is mostly to filter out the little blips the camera catches that definitely aren't VisionObjects)
+  minArea = 10;
+  maxArea = 40*40; // very lenient values (this is mostly to filter out the little blips the camera catches that definitely aren't VisionObjects)
   maxMotionToleranceSq = 16*16;
 }
 
