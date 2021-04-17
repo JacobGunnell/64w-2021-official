@@ -16,12 +16,12 @@ public:
   Robot(std::shared_ptr<OdomChassisController>,
     std::shared_ptr<AsyncMotionProfileController>,
     std::shared_ptr<ScoringSystem>,
-    std::shared_ptr<Vision<10>>);
+    std::shared_ptr<Vision<5>>);
 
   std::shared_ptr<OdomChassisController> getChassis() const { return Chassis; }
   std::shared_ptr<AsyncMotionProfileController> getProfileController() const { return ProfileController; }
   std::shared_ptr<ScoringSystem> getScoring() const { return Scoring; }
-  std::shared_ptr<Vision<10>> getCamera() const { return Camera; }
+  std::shared_ptr<Vision<5>> getCamera() const { return Camera; }
 
   void driveTime(QTime, double);
   void alignGoal(Point, QAngle, QTime, double, bool = false);
@@ -31,6 +31,7 @@ public:
   void grabAt(Point);
   void grabAtSensor(Point, int, QTime = 250_ms);
   void translateToPoint(Point, QAngle);
+  bool resetState(OdomState, QLength = 3_in, QAngle = 7_deg); // TODO: make values more lenient?
 
   void logBlackboxFrame();
   bool saveBlackbox(std::string = "/usd/blackbox.csv");
@@ -41,7 +42,7 @@ private:
   std::shared_ptr<XDriveModel> Drive;
   std::shared_ptr<AsyncMotionProfileController> ProfileController;
   std::shared_ptr<ScoringSystem> Scoring;
-  std::shared_ptr<Vision<10>> Camera;
+  std::shared_ptr<Vision<5>> Camera;
 
   std::vector<double> r_x;
   std::vector<double> r_y;

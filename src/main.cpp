@@ -12,7 +12,7 @@ MotorGroup Intakes({Motor(8, false, AbstractMotor::gearset::blue, AbstractMotor:
 // Sensor Objects
 Controller Cont(ControllerId::master);
 pros::Imu Imu(4);
-std::shared_ptr<Vision<10>> Camera;
+std::shared_ptr<Vision<5>> Camera;
 pros::ADILineSensor LowerLightSensor('G');
 pros::ADILineSensor UpperLightSensor('H');
 
@@ -107,7 +107,7 @@ void initialize()
 		.withDerivativeFilters(std::make_unique<AverageFilter<3>>())
 		.withSensors(LeftQuad, RightQuad, MiddleQuad)
 		.withDimensions(AbstractMotor::gearset::green, {{2.75_in, 11.125_in, 3.84_in, 2.75_in}, quadEncoderTPR})
-		.withMaxVelocity(100)
+		.withMaxVelocity(110)
 		.withOdometry(StateMode::CARTESIAN)
 		.buildOdometry();
 
@@ -127,7 +127,7 @@ void initialize()
 	pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 	pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
 	pros::vision_signature_s_t GOAL = pros::Vision::signature_from_utility (3, -3093, -1459, -2276, -4603, -2491, -3547, 2.000, 0);
-	Camera = std::make_shared<Vision<10>>(19, 150, RED_BALL, BLUE_BALL, GOAL, 0);
+	Camera = std::make_shared<Vision<5>>(19, 150, RED_BALL, BLUE_BALL, GOAL, 0);
 
 	Gary = std::make_shared<Robot>(Chassis, ProfileController, Scoring, Camera);
 

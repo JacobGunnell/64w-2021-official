@@ -3,7 +3,7 @@
 Robot::Robot(std::shared_ptr<OdomChassisController> chassis,
   std::shared_ptr<AsyncMotionProfileController> profileController,
   std::shared_ptr<ScoringSystem> scoring,
-  std::shared_ptr<Vision<10>> camera) : Chassis(chassis), ProfileController(profileController), Scoring(scoring), Camera(camera)
+  std::shared_ptr<Vision<5>> camera) : Chassis(chassis), ProfileController(profileController), Scoring(scoring), Camera(camera)
 {
   Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
 
@@ -27,7 +27,7 @@ void Robot::alignGoal(Point point, QAngle targetAngle, QTime timeout, double pow
   Timer timer;
   Rate r;
 
-  double strafeGain = .06;
+  double strafeGain = .1;
   double turnGain = .001;
 
   Chassis->turnToAngle(targetAngle);
@@ -53,7 +53,7 @@ void Robot::alignGoalCamera(QTime timeout, double power)
 {
   Timer timer;
   Rate r;
-  double strafeGain = .04;
+  double strafeGain = .02;
 
   QTime start = timer.millis();
   while(timer.millis() < start + timeout)
@@ -137,6 +137,24 @@ void Robot::translateToPoint(Point targetPoint, QAngle targetAngle)
   Drive->stop();
   Scoring->stop();
   */
+}
+
+bool Robot::resetState(OdomState state, QLength maxL, QAngle maxA)
+{
+  OdomState currentState = Chassis->getState();
+  QLength dx = state.x - currentState.x;
+  QLength dy = state.y - currentState.y;
+  if(dx*dx + dy*dy < maxL*maxL && (state.theta - currentState.theta).abs() < maxA)
+  {
+    Chassis->setState(state); // as long as the IMU angle isn't reset, the state angle won't be either
+    std::cout << "Reset state to " << state.str() << std::endl;
+    return true;
+  }
+  else
+  {
+    std::cout << "Failed to reset state" << std::endl;
+    return false;
+  }
 }
 
 void Robot::logBlackboxFrame()

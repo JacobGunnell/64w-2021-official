@@ -3,12 +3,12 @@
 
 #include "AutonBase.h"
 
-class Illuminati : public AutonBase
+class Pickaxe : public AutonBase
 {
 public:
-  std::string getName() const override { return "Illuminati"; }
-  int getPoints() const override { return 75; } // in theory
-  std::string getDescription() const override { return "Starts in tile 6 and scores in goals 1 4 7 8 9 & 5, forming a triangle."; }
+  std::string getName() const override { return "Pickaxe"; }
+  int getPoints() const override { return 82; } // in theory
+  std::string getDescription() const override { return "Starts in tile 6 and scores in goals 1 4 7 8 9 5 & 3, forming a pickaxe shape."; }
   void exec(Position p) override
   {
     // Starting Position
@@ -23,6 +23,7 @@ public:
     // Score in goal 4
     Chassis->turnToAngle(-90_deg);
     Gary->alignGoalCamera(1.5_s, .5);
+    Gary->resetState({-2*t - 1.212_in, 0_in, -90_deg});
     Scoring->scoreSensor();
     Gary->backOut({-1.6*t, 0_in});
 
@@ -32,16 +33,18 @@ public:
     // Score in goal 7
     Chassis->turnToAngle(-45_deg);
     Gary->alignGoalCamera(.7_s, .5);
-    Scoring->scoreSensor();
-    Gary->backOut({-1.3*t, 1*t});
+    Gary->resetState({-2*t - 5.305_in, 2*t + 6.6097_in, -45_deg});
+    Scoring->scoreSensor(1);
+    Gary->backOut({-1.3*t, .9*t});
 
     // Grab balls at (0, 12) and (0, 24)
-    Gary->grabAt({0_in, 1*t});
+    Gary->grabAt({0_in, .9*t});
     Gary->grabAtSensor({0_in, 1.7*t}, 2);
 
     // Score in goal 8
     Chassis->turnToAngle(0_deg);
     Gary->alignGoalCamera(.7_s, .5);
+    Gary->resetState({0_in, 2*t + 2.7956_in, 0_deg});
     Scoring->scoreSensor();
     Gary->backOut({0_in, 1.5*t});
 
@@ -53,7 +56,8 @@ public:
     // Score in goal 9
     Chassis->turnToAngle(45_deg);
     Gary->alignGoalCamera(1.5_s, .5);
-    Scoring->scoreSensor();
+    //Gary->resetState({2*t + 5.7156_in, 2*t + 5.5487_in, 45_deg});
+    Scoring->scoreSensor(1);
     Gary->backOut({1*t, 1.3*t});
 
     // Grab ball at (24, 0), score in goal 5
@@ -63,6 +67,13 @@ public:
     Gary->alignGoal({1.2*t, 0_in}, 270_deg, .7_s, 0);
     Gary->alignGoal({1.2*t, 0_in}, 270_deg, 2_s, .3, true);
     Scoring->scoreSensor(1); // Don't allow the bot to accidentally score a blue ball
-    Chassis->driveToPoint({1.5*t, 0_in}, true);
+    Gary->backOut({1.8*t, 0_in});
+
+    // Grab ball at (48, -36), score in goal 3
+    Gary->grabAt({2*t, -1.8*t});
+    Chassis->turnToAngle(135_deg);
+    Gary->alignGoalCamera(.7_s, .5);
+    Scoring->scoreSensor(1);
+    Gary->backOut({1*t, -1*t});
   }
 };

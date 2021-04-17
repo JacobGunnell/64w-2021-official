@@ -5,7 +5,7 @@ ScoringSystem::ScoringSystem(Motor &iBottomRollers, Motor &iTopRollers, MotorGro
     LowerLightSensor(iLowerLightSensor), UpperLightSensor(iUpperLightSensor),
     intakeSpeed(iIntakeSpeed), outtakeSpeed(iOuttakeSpeed), rollerSpeed(iRollerSpeed),
     lowerLightSensorThresholdLow(iLowerLightSensorThresholdLow), lowerLightSensorThresholdHigh(iLowerLightSensorThresholdHigh), upperLightSensorThresholdLow(iUpperLightSensorThresholdLow), upperLightSensorThresholdHigh(iUpperLightSensorThresholdHigh),
-    carriageCapacity(3), ballsInCarriage(0)
+    carriageCapacity(3), ballsInCarriage(0), ballsScored(0), ballsGrabbed(0)
 {
   carriageCounter = std::make_unique<pros::Task>(callCarriageCounterCb, static_cast<void *>(this));
 }
@@ -105,31 +105,47 @@ void ScoringSystem::stop()
 
 // Smart Definitions
 
-void ScoringSystem::grabSensor(QTime timeout, int numBalls, QTime extra)
+void ScoringSystem::grabSensor(int numBalls, QTime timeout, QTime extra)
 {
   Timer timer;
-  int targetBalls = getBallsInCarriage() + numBalls;
+  int targetBallsGrabbed = getBallsGrabbed() + numBalls;
   QTime stopTime = timer.millis() + timeout - extra;
+
   grab();
-  while(getBallsInCarriage() < targetBalls && timer.millis() < stopTime)
+  while(getBallsGrabbed() < targetBallsGrabbed && timer.millis() < stopTime)
     pros::delay(50);
   pros::delay(extra.convert(millisecond));
   stop();
 }
 
-void ScoringSystem::scoreSensor(QTime timeout, int numBalls, QTime extra)
+void ScoringSystem::scoreSensor(int numBalls, QTime timeout, QTime extra)
 {
   Timer timer;
-  int targetBalls;
+  int targetBallsScored;
   if(numBalls == -1) // Scores all balls in carriage by default
-    targetBalls = 0;
+    targetBallsScored = getBallsScored() + getBallsInCarriage();
   else
-    targetBalls = getBallsInCarriage() - numBalls;
+    targetBallsScored = getBallsScored() + numBalls;
   QTime stopTime = timer.millis() + timeout - extra;
-  if(getBallsInCarriage() > 1)
+
+  if(getBallsInCarriage() > 1 && (numBalls > 1 || numBalls == -1)) // only split if carriage has 2 or more balls and 2 or more balls have been requested
     split(200_ms);
   score();
-  while(getBallsInCarriage() > targetBalls && timer.millis() < stopTime)
+  while(getBallsScored() < targetBallsScored && timer.millis() < stopTime)
+    pros::delay(50);
+  pros::delay(extra.convert(millisecond));
+  stop();
+  setBallsInCarriage(0);
+}
+
+void ScoringSystem::flushSensor(QTime timeout, QTime extra)
+{
+  Timer timer;
+  int targetBallsScored;
+  QTime stopTime = timer.millis() + timeout - extra;
+
+  flush();
+  while(getBallsInCarriage() > 0 && timer.millis() < stopTime)
     pros::delay(50);
   pros::delay(extra.convert(millisecond));
   stop();
@@ -155,6 +171,22 @@ void ScoringSystem::setBallsInCarriage(int n)
   }
 }
 
+int ScoringSystem::getBallsGrabbed()
+{
+  carriageCountMtx.lock();
+  int balls = ballsGrabbed;
+  carriageCountMtx.unlock();
+  return balls;
+}
+
+int ScoringSystem::getBallsScored()
+{
+  carriageCountMtx.lock();
+  int balls = ballsScored;
+  carriageCountMtx.unlock();
+  return balls;
+}
+
 void ScoringSystem::carriageCounterCb()
 {
   Rate r;
@@ -171,6 +203,7 @@ void ScoringSystem::carriageCounterCb()
       if(BottomRollers.getActualVelocity() > 0 && ballsInCarriage < carriageCapacity) // Incoming balls are counted once the sensor reads low
       {
         ballsInCarriage++;
+        ballsGrabbed++;
         std::cout << "Ball received from bottom, current count " << ballsInCarriage << std::endl;
       }
     }
@@ -200,6 +233,7 @@ void ScoringSystem::carriageCounterCb()
       if(TopRollers.getActualVelocity() > 0 && ballsInCarriage > 0) // Outgoing balls are counted once the sensor reads high
       {
         ballsInCarriage--;
+        ballsScored++;
         std::cout << "Ball ejected out top, current count " << ballsInCarriage << std::endl;
       }
     }

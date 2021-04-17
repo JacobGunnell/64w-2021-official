@@ -16,11 +16,13 @@ std::vector<std::unique_ptr<AutonBase>> AutonBase::getAllObjs()
 {
   std::vector<std::unique_ptr<AutonBase>> objs;
   // (Auton.h > ) ...and add one of these
+  objs.push_back(std::make_unique<Pickaxe>());
+  objs.push_back(std::make_unique<Bagel>());
   objs.push_back(std::make_unique<Illuminati>());
   objs.push_back(std::make_unique<Skills14789>());
-  objs.push_back(std::make_unique<Skills147>());
-  objs.push_back(std::make_unique<Skills159>());
-  objs.push_back(std::make_unique<Skills14>());
+  //objs.push_back(std::make_unique<Skills147>());
+  //objs.push_back(std::make_unique<Skills159>());
+  //objs.push_back(std::make_unique<Skills14>());
   //objs.push_back(std::unique_ptr<AutonBase>(new HomeRow));
 
   objs.push_back(std::make_unique<NoAuton>()); // leave this one last

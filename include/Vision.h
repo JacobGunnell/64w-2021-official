@@ -47,6 +47,7 @@ private:
   int rotation; // 0 for 0 deg, 1, for 90 deg, 2 for 180 deg, and so forth
 };
 
+template class Vision<5u>;
 template class Vision<10u>;
 template class Vision<20u>;
 template class Vision<30u>;

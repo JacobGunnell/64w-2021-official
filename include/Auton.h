@@ -8,3 +8,5 @@
 #include "auton/Skills147.h"
 #include "auton/Skills14789.h"
 #include "auton/Illuminati.h"
+#include "auton/Pickaxe.h"
+#include "auton/Bagel.h"

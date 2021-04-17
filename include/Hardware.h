@@ -17,7 +17,7 @@ extern MotorGroup Intakes;
 // Sensor objects
 extern Controller Cont;
 extern pros::Imu Imu;
-extern std::shared_ptr<Vision<10>> Camera;
+extern std::shared_ptr<Vision<5>> Camera;
 extern pros::ADILineSensor LowerLightSensor, UpperLightSensor;
 
 // Tasks / Mutexes

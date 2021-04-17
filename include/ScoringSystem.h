@@ -10,7 +10,7 @@ using namespace okapi;
 class ScoringSystem
 {
 public:
-  ScoringSystem(Motor &, Motor &, MotorGroup &, pros::ADILineSensor &, pros::ADILineSensor &, int = 12000, int = 6000, int = 12000, int = -150, int = -50, int = -100, int = -50);
+  ScoringSystem(Motor &, Motor &, MotorGroup &, pros::ADILineSensor &, pros::ADILineSensor &, int = 12000, int = 6000, int = 12000, int = -150, int = -40, int = -100, int = -40);
 
   pros::ADILineSensor &getLowerLightSensor() const { return LowerLightSensor; }
   pros::ADILineSensor &getUpperLightSensor() const { return UpperLightSensor; }
@@ -43,10 +43,13 @@ public:
 
   bool lowerSensorDetect() { return LowerLightSensor.get_value_calibrated() < lowerLightSensorThresholdLow; }
   bool upperSensorDetect() { return UpperLightSensor.get_value_calibrated() < upperLightSensorThresholdLow; }
-  void grabSensor(QTime = 1_s, int = 1, QTime = 250_ms);
-  void scoreSensor(QTime = 1_s, int = -1, QTime = 250_ms);
+  void grabSensor(int = 1, QTime = 2_s, QTime = 250_ms);
+  void scoreSensor(int = -1, QTime = 2_s, QTime = 250_ms);
+  void flushSensor(QTime = 2_s, QTime = 500_ms);
 
   int getBallsInCarriage();
+  int getBallsGrabbed();
+  int getBallsScored();
 
 private:
   Motor &BottomRollers;
@@ -57,7 +60,7 @@ private:
 
 
   int intakeSpeed, outtakeSpeed, rollerSpeed, lowerLightSensorThresholdLow, lowerLightSensorThresholdHigh, upperLightSensorThresholdLow, upperLightSensorThresholdHigh;
-  int ballsInCarriage;
+  int ballsInCarriage, ballsGrabbed, ballsScored;
   void setBallsInCarriage(int);
   const int carriageCapacity;
 
