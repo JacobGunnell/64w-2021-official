@@ -64,8 +64,8 @@ public:
     Gary->grabAt({1*t, 4_in});
     Gary->alignGoal({1*t, 4_in}, 270_deg, 1_s, .4);
     Chassis->driveToPoint({1.2*t, 4_in}, true);
-    Gary->alignGoal({1.2*t, 0_in}, 270_deg, .7_s, 0);
-    Gary->alignGoal({1.2*t, 0_in}, 270_deg, 2_s, .3, true);
+    Gary->alignGoal({1.2*t, 1_in}, 270_deg, .7_s, 0);
+    Gary->alignGoal({1.2*t, 1_in}, 270_deg, 2_s, .3, true);
     Scoring->scoreSensor(1); // Don't allow the bot to accidentally score a blue ball
     Gary->backOut({1.8*t, 0_in});
 
