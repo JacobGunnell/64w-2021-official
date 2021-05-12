@@ -12,7 +12,8 @@ public:
   void exec(Position p) override
   {
     // Starting Position
-    START(-2*t - 10.92_in, -2*t - 7.185_in, 25_deg);
+    //START(-2*t - 10.92_in, -2*t - 7.185_in, 25_deg);
+    START(-2*t - 11.27_in + 1.5_in, -2*t - 7.19_in, 27_deg);
 
     // Deploy bot, Score in goal 1, Grab balls at (-48, -36) and (0, -24)
     Scoring->topOnly(500_ms); // Flip top

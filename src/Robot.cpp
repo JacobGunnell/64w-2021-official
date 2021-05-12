@@ -7,12 +7,12 @@ Robot::Robot(std::shared_ptr<OdomChassisController> chassis,
 {
   Drive = std::dynamic_pointer_cast<XDriveModel>(Chassis->getModel());
 
-  r_x.reserve(600);
-  r_y.reserve(600);
-  r_theta.reserve(600);
-  upperlight.reserve(600);
-  lowerlight.reserve(600);
-  cameraobjs.reserve(600);
+  r_x.reserve(620);
+  r_y.reserve(620);
+  r_theta.reserve(620);
+  upperlight.reserve(620);
+  lowerlight.reserve(620);
+  cameraobjs.reserve(620);
 }
 
 void Robot::driveTime(QTime t, double power)

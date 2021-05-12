@@ -126,8 +126,8 @@ void initialize()
 
 	pros::vision_signature_s_t RED_BALL = pros::Vision::signature_from_utility (1, 6063, 9485, 7774, -2753, -327, -1540, 1.900, 0);
 	pros::vision_signature_s_t BLUE_BALL = pros::Vision::signature_from_utility (2, -2545, -85, -1316, 897, 7427, 4162, 1.000, 0);
-	pros::vision_signature_s_t GOAL = pros::Vision::signature_from_utility (3, -3093, -1459, -2276, -4603, -2491, -3547, 2.000, 0);
-	Camera = std::make_shared<Vision<5>>(19, 150, RED_BALL, BLUE_BALL, GOAL, 0);
+	pros::vision_signature_s_t GOAL = pros::Vision::signature_from_utility (3, -2823, -2405, -2614, -3993, -3385, -3689, 5.800, 0);
+	Camera = std::make_shared<Vision<5>>(19, 50, RED_BALL, BLUE_BALL, GOAL, 0);
 
 	Gary = std::make_shared<Robot>(Chassis, ProfileController, Scoring, Camera);
 
