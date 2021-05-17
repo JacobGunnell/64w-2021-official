@@ -200,7 +200,8 @@ void ScoringSystem::carriageCounterCb()
     if(!lower && LowerLightSensor.get_value_calibrated() < lowerLightSensorThresholdLow)
     {
       lower = true;
-      if(BottomRollers.getActualVelocity() > 0 && ballsInCarriage < carriageCapacity) // Incoming balls are counted once the sensor reads low
+      // Incoming balls are counted once the sensor reads low
+      if(BottomRollers.getActualVelocity() > 0 && ballsInCarriage < carriageCapacity)
       {
         ballsInCarriage++;
         ballsGrabbed++;
@@ -210,7 +211,8 @@ void ScoringSystem::carriageCounterCb()
     else if(lower && LowerLightSensor.get_value_calibrated() > lowerLightSensorThresholdHigh)
     {
       lower = false;
-      if(BottomRollers.getActualVelocity() < 0 && ballsInCarriage > 0) // Outgoing balls are counted once the sensor reads high
+      // Outgoing balls are counted once the sensor reads high
+      if(BottomRollers.getActualVelocity() < 0 && ballsInCarriage > 0)
       {
         ballsInCarriage--;
         std::cout << "Ball ejected out bottom, current count " << ballsInCarriage << std::endl;
@@ -221,7 +223,8 @@ void ScoringSystem::carriageCounterCb()
     if(!upper && UpperLightSensor.get_value_calibrated() < upperLightSensorThresholdLow)
     {
       upper = true;
-      if(TopRollers.getActualVelocity() < 0 && ballsInCarriage < carriageCapacity) // Incoming balls are counted once the sensor reads low
+      // Incoming balls are counted once the sensor reads low
+      if(TopRollers.getActualVelocity() < 0 && ballsInCarriage < carriageCapacity)
       {
         ballsInCarriage++;
         std::cout << "Ball received from top, current count " << ballsInCarriage << std::endl;
@@ -230,7 +233,8 @@ void ScoringSystem::carriageCounterCb()
     else if(upper && UpperLightSensor.get_value_calibrated() > upperLightSensorThresholdHigh)
     {
       upper = false;
-      if(TopRollers.getActualVelocity() > 0 && ballsInCarriage > 0) // Outgoing balls are counted once the sensor reads high
+      // Outgoing balls are counted once the sensor reads high
+      if(TopRollers.getActualVelocity() > 0 && ballsInCarriage > 0)
       {
         ballsInCarriage--;
         ballsScored++;

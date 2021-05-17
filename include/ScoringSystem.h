@@ -10,7 +10,7 @@ using namespace okapi;
 class ScoringSystem
 {
 public:
-  ScoringSystem(Motor &, Motor &, MotorGroup &, pros::ADILineSensor &, pros::ADILineSensor &, int = 12000, int = 6000, int = 12000, int = -150, int = -40, int = -100, int = -40);
+  ScoringSystem(Motor &, Motor &, MotorGroup &, pros::ADILineSensor &, pros::ADILineSensor &, int = 12000, int = 6000, int = 12000, int = -300, int = -40, int = -100, int = -40);
 
   pros::ADILineSensor &getLowerLightSensor() const { return LowerLightSensor; }
   pros::ADILineSensor &getUpperLightSensor() const { return UpperLightSensor; }
