@@ -180,6 +180,10 @@ void autonomous()
 {
 	std::cout << "Executing autonomous #" << autonNum << "... ";
 	std::cout.flush();
+
+	Timer t;
+	QTime start = t.millis();
+
 	DriveMtx.lock();
 	IntakeMtx.lock();
 	if(settings.enableBlackbox)
@@ -188,7 +192,8 @@ void autonomous()
 		AutonBase::getAllObjs()[autonNum]->exec(position);
 	DriveMtx.unlock();
 	IntakeMtx.unlock();
-	std::cout << "done" << std::endl;
+
+	std::cout << "done in " << (t.millis() - start).convert(second) << " seconds" << std::endl;
 }
 
 void opcontrol()

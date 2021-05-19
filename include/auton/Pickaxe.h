@@ -57,7 +57,7 @@ public:
     // Score in goal 9
     Chassis->turnToAngle(45_deg);
     Gary->alignGoalCamera(1.5_s, .5);
-    //Gary->resetState({2*t + 5.7156_in, 2*t + 5.5487_in, 45_deg});
+    Gary->resetState({2*t + 5.7156_in, 2*t + 5.5487_in, 45_deg});
     Scoring->scoreSensor(1);
     Gary->backOut({1*t, 1.3*t});
 
