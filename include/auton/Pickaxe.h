@@ -19,7 +19,7 @@ public:
     Scoring->topOnly(500_ms); // Flip top
     Drive->forward(.7);
     pros::delay(500);
-    Gary->grabAtSensor({-.8*t, 0_in}, 2);
+    Gary->grabAtSensor({-.8*t, -2_in}, 2);
 
     // Score in goal 4
     Chassis->turnToAngle(-90_deg);
@@ -57,7 +57,7 @@ public:
     // Score in goal 9
     Chassis->turnToAngle(45_deg);
     Gary->alignGoalCamera(1.5_s, .5);
-    Gary->resetState({2*t + 5.7156_in, 2*t + 5.5487_in, 45_deg});
+    //Gary->resetState({2*t + 5.7156_in, 2*t + 5.5487_in, 45_deg});
     Scoring->scoreSensor(1);
     Gary->backOut({1*t, 1.3*t});
 
@@ -71,7 +71,7 @@ public:
     Gary->backOut({1.6*t, 0_in});
 
     // Grab ball at (48, -36), score in goal 3
-    Gary->grabAt({2*t, -1.9*t});
+    Gary->grabAt({2*t, -1.6*t});
     Chassis->turnToAngle(135_deg);
     Gary->alignGoalCamera(.7_s, .5);
     Scoring->scoreSensor(1);
